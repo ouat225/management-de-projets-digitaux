@@ -1,7 +1,7 @@
 # src/functions/app_controller.py
 import streamlit as st
 
-from Function.data_viz import (
+from functions.data_viz import (
     load_data,
     plot_price_distribution,
     plot_surface_vs_price,
