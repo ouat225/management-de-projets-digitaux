@@ -1,6 +1,5 @@
 # src/functions/app_controller.py
 import streamlit as st
-
 from functions.data_viz import (
     load_data,
     plot_price_distribution,
@@ -12,35 +11,54 @@ def run_app():
     """Contrôle l'application Streamlit."""
     st.title("🏠 Analyse du marché immobilier à Paris")
 
-    # Chargement des données
+    # --- Chargement des données ---
     df = load_data("data/ParisHousing.csv")
 
-    st.write("### Aperçu des données")
-    st.dataframe(df.head())
-
-    # Choix du graphique / fonctionnalité
+    # --- Choix du graphique / fonctionnalité ---
     st.sidebar.header("Paramètres")
     choice = st.sidebar.selectbox(
         "Que souhaitez-vous afficher ?",
         ("Distribution des prix", "Surface vs Prix", "Prix moyen par quartier")
     )
 
-    # Affichage
+    # --- Afficher l'aperçu  ---
+    if choice != "Prix moyen par quartier": # ne pas l'afficher sur "prix moyen par quartier"
+        st.write("### Aperçu des données")
+        st.dataframe(df.head(), use_container_width=True)
+
+    # 🖼️ AFFICHAGE SELON LE CHOIX
+    
     if choice == "Distribution des prix":
-        st.plotly_chart(plot_price_distribution(df))
+        st.plotly_chart(plot_price_distribution(df), use_container_width=True)
 
     elif choice == "Surface vs Prix":
-        st.plotly_chart(plot_surface_vs_price(df))
+        st.plotly_chart(plot_surface_vs_price(df), use_container_width=True)
 
     elif choice == "Prix moyen par quartier":
-        st.subheader("💶 Calcul du prix moyen par quartier")
+        st.subheader("💶 Quartiers")
 
-        # Champ de saisie du cityCode
-        city_code = st.number_input("Entrez le code du quartier (cityCode)", min_value=0, step=1)
+        if "cityCode" not in df.columns:
+            st.warning("La colonne 'cityCode' est absente du dataset.")
+        else:
+            counts = df["cityCode"].value_counts()
 
-        if city_code:
-            mean_price = get_average_price_by_citycode(df, city_code)
+            # --- Top 5 des cityCodes les plus fréquents ---
+            st.write("### Top 5 des cityCodes les plus fréquents")
+            top5 = counts.head(5).rename_axis("cityCode").reset_index(name="occurrences")
+            st.dataframe(top5, use_container_width=True)
+
+            # cityCode le plus fréquent
+            if not counts.empty:
+                top_city = int(counts.index[0])
+                top_count = int(counts.iloc[0])
+                st.info(f"🏙️ le cityCode le plus fréquent : **{top_city}** avec **{top_count}** occurrences")
+
+            # Sélecteur du quartier + prix moyen
+            codes = sorted(df["cityCode"].unique().tolist())
+            sel = st.selectbox("Choisissez un quartier (cityCode)", options=[int(c) for c in codes])
+
+            mean_price = get_average_price_by_citycode(df, int(sel))
             if mean_price is None:
-                st.warning("⚠️ Ce code de quartier n'existe pas dans la base de données.")
+                st.warning("Impossible de calculer le prix moyen pour ce quartier.")
             else:
-                st.success(f"💰 Le prix moyen des logements pour le quartier {int(city_code)} est de **{mean_price:,.0f} €**.")
+                st.success(f"💰 Prix moyen pour le quartier {int(sel)} : **{mean_price:,.0f} €**.")
