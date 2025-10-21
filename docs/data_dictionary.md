@@ -47,7 +47,7 @@
 - ✅ No missing values (`isna().sum() == 0`)  
 - ✅ Consistent numeric ranges (e.g. `price > 0`, `squareMeters` between 15 and 350)  
 - ✅ Homogeneous encoding (0/1 for all binary features) 
-- ⚠️ Dataset is **synthetic**, not collected from real observations — used for educational and prototyping purposes only.  
+- ✅ Dataset is **synthetic**, not collected from real observations — used for educational and prototyping purposes only.  
 
 ---
 
