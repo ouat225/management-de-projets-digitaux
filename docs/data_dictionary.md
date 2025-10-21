@@ -73,9 +73,9 @@ This data dictionary ensures:
 This project was developed by 5 students from the “Statistique pour l'Evaluation et la Prévision” (SEP) master's program at the University of Reims Champagne-Ardenne (class of 2025-2026).
 The contributors to this project are identified below :
 
-Oumar ALLAWAN
-Dimitri DELPECH
-Jean-Marc OUATTARA
-Simon MALHEY
-Dominique MUSITELLI 
+- Oumar ALLAWAN
+- Dimitri DELPECH
+- Jean-Marc OUATTARA
+- Simon MALHEY
+- Dominique MUSITELLI 
 
