@@ -60,16 +60,25 @@ This project provides a comprehensive analysis of the Parisian real estate marke
 management-de-projets-digitaux/
 ├── data/
 │   └── ParisHousing.csv         # Main Paris housing dataset
+│
 ├── docs/                        # Additional documentation
+│
 ├── src/
 │   ├── functions/              
 │   │   ├── app_controller.py   # Main application controller
 │   │   └── data_viz.py         # Data visualization functions
+│   │
 │   └── main.py                 # Application entry point
+│
 ├── test/                       # Unit and integration tests
+│   ├── test_load_data.py       # Tests for the load_data() function
+│   ├── test_data_viz_plots.py  # Tests for visualization functions
+│   └── test_get_average_price.py  # Tests for get_average_price_by_citycode()
+│
 ├── .gitignore                  # Git ignore file
 ├── README.md                   # This file
 └── requirements.txt            # Project dependencies
+
 ```
 
 ## Dataset
