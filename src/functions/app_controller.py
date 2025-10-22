@@ -11,22 +11,22 @@ def run_app():
     """Contrôle l'application Streamlit."""
     st.title("🏠 Analyse du marché immobilier à Paris")
 
-    # --- Chargement des données ---
+    #Chargement des données
     df = load_data("data/ParisHousing.csv")
 
-    # --- Choix du graphique / fonctionnalité ---
+    #Choix du graphique / fonctionnalité
     st.sidebar.header("Paramètres")
     choice = st.sidebar.selectbox(
         "Que souhaitez-vous afficher ?",
         ("Distribution des prix", "Surface vs Prix", "Prix moyen par quartier")
     )
 
-    # --- Afficher l'aperçu  ---
+    #Afficher l'aperçu
     if choice != "Prix moyen par quartier": # ne pas l'afficher sur "prix moyen par quartier"
         st.write("### Aperçu des données")
         st.dataframe(df.head(), use_container_width=True)
 
-    # 🖼️ AFFICHAGE SELON LE CHOIX
+    #AFFICHAGE SELON LE CHOIX
     
     if choice == "Distribution des prix":
         st.plotly_chart(plot_price_distribution(df), use_container_width=True)
@@ -42,7 +42,7 @@ def run_app():
         else:
             counts = df["cityCode"].value_counts()
 
-            # --- Top 5 des cityCodes les plus fréquents ---
+            #Top 5 des cityCodes les plus fréquents
             st.write("### Top 5 des cityCodes les plus fréquents")
             top5 = counts.head(5).rename_axis("cityCode").reset_index(name="occurrences")
             st.dataframe(top5, use_container_width=True)
