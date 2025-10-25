@@ -94,25 +94,22 @@ def generate_univariate_analysis(df: pd.DataFrame, column: str) -> Dict[str, Any
             "freq": int(df[column].value_counts().iloc[0]) if not df[column].empty else 0
         }
         
-        # Création des graphiques pour variables catégorielles
+        # Création du graphique pour les variables catégorielles
         if len(value_counts) > 20:  # Si trop de catégories, on affiche les 20 premières
             value_counts = value_counts.head(20)
-            
-        fig = make_subplots(rows=1, cols=2, 
-                          subplot_titles=('Top 20 des valeurs', 'Répartition'))
         
-        # Bar plot
-        bar = px.bar(value_counts, x='Valeur', y='Nombre',
-                     title=f'Top 20 des valeurs de {column}')
-        fig.add_trace(bar.data[0], row=1, col=1)
+        # On utilise uniquement un graphique à barres pour simplifier
+        fig = px.bar(value_counts, x='Valeur', y='Nombre',
+                    title=f'Répartition des valeurs de {column}')
         
-        # Pie chart (uniquement si pas trop de catégories)
-        if len(value_counts) <= 10:
-            pie = px.pie(value_counts, names='Valeur', values='Nombre',
-                        title=f'Répartition de {column}')
-            fig.add_trace(pie.data[0], row=1, col=2)
-        
-        fig.update_layout(showlegend=False, height=500)
+        # Ajuster la taille et la rotation des étiquettes pour une meilleure lisibilité
+        fig.update_layout(
+            xaxis_tickangle=-45,
+            height=500,
+            showlegend=False,
+            xaxis_title="Valeurs",
+            yaxis_title="Nombre d'occurrences"
+        )
         analysis["fig"] = fig
         analysis["value_counts"] = value_counts.to_dict('records')
     
