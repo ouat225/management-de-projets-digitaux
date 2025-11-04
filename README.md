@@ -1,33 +1,33 @@
-# PARIS HOUSING INSIGHTS 
+# MAISONESTIMATEUR
 
-Your Paris Real Estate Analysis Tool
+Votre outil d’analyse du marché immobilier parisien
 
-## Overview
+## Aperçu
 
-This project provides a comprehensive analysis of the Parisian real estate market using a dataset of 10,000 properties. The tool allows you to visualize and analyze market trends, and explore relationships between different property features.
+Ce projet propose une application interactive permettant d’analyser le marché immobilier parisien à partir d’un jeu de données de 10 000 logements.
+L’outil permet de visualiser les statistiques du marché, d’explorer les variables descriptives du dataset et d’obtenir des informations par quartier.
 
-## Features
+## Fonctionnalités
 
-- **Price Analysis**: Visualize price distribution by district
-- **Feature Comparison**: Explore how different features influence prices
-- **Advanced Filters**: Refine your search based on specific criteria
-- **Interactive Visualizations**: Charts and maps for better data understanding
+- **Analyse univariée** : statistiques descriptives pour chaque variable
+- **Visualisations interactives** : histogrammes, boxplots, diagrammes en barres
+- **Analyse par quartier (cityCode)** : prix moyen par zone géographique
 
-## Prerequisites
+## Prérequis
 
 - Python 3.8+
-- Python libraries listed in `requirements.txt`
-- Streamlit (will be installed via dependencies)
+- Bibliothèques Python listées dans requirements.txt
+- Streamlit (installé automatiquement via les dépendances)
 
-## Installation and Usage
+## Installation et utilisation
 
-1. **Clone the repository**
+1. **Cloneer le dépot**
    ```bash
    git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
    cd management-de-projets-digitaux
    ```
 
-2. **Create and activate a virtual environment**
+2. **Créer et activer un environnement virtuel**
    ```bash
    # Windows
    python -m venv venv
@@ -38,46 +38,51 @@ This project provides a comprehensive analysis of the Parisian real estate marke
    source venv/bin/activate
    ```
 
-3. **Install dependencies**
+3. **Installer les dépendances**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Launch the Streamlit application**
-   From the project root, run:
+4. **Lancer l’application Streamlit**
+   Depuis la racine du projet, run:
    ```bash
    streamlit run src/main.py
    ```
 
-5. **Using the application**
-   - The application will automatically open in your default browser
-   - Use the sidebar to select different visualizations
-   - Explore Parisian housing data interactively
+5. **Utilisation de l'application**
+   - L’application s’ouvre automatiquement dans votre navigateur
+   - Naviguez via les onglets : Accueil, Estimation, Statistiques
+   - Analysez les données immobilières parisiennes de façon interactive
 
-## Project Structure
+## Structure du projet
 
 ```
-management-de-projets-digitaux/
+
+project_root/
 ├── data/
-│   └── ParisHousing.csv         # Main Paris housing dataset
-│
-├── docs/                        # Additional documentation
+│   └── ParisHousing.csv               # Dataset principal
 │
 ├── src/
-│   ├── functions/              
-│   │   ├── app_controller.py   # Main application controller
-│   │   └── data_viz.py         # Data visualization functions
-│   │
-│   └── main.py                 # Application entry point
+│   ├── main.py                        # Point d'entrée Streamlit
+│   └── MaisonEstimateur/
+│       ├── app.py                     # Assemble et gère les pages
+│       ├── pages/                     # Pages de l'application
+│       │   ├── home_page.py
+│       │   ├── estimation_page.py
+│       │   └── statistics_page.py
+│       ├── components/                # Composants UI réutilisables
+│       │   ├── layout.py
+│       │   └── widgets.py
+│       ├── data_processing/           # Chargement/gestion des données
+│       │   └── load_data.py
+│       └── analysis/                  # Logique métier & statistiques
+│           ├── univariate_analysis.py
+│           └── pricing.py
 │
-├── test/                       # Unit and integration tests
-│   ├── test_load_data.py       # Tests for the load_data() function
-│   ├── test_data_viz_plots.py  # Tests for visualization functions
-│   └── test_get_average_price.py  # Tests for get_average_price_by_citycode()
+├── tests/                             # Tests unitaires
 │
-├── .gitignore                  # Git ignore file
-├── README.md                   # This file
-└── requirements.txt            # Project dependencies
+├── requirements.txt
+└── README.md
 
 ```
 
