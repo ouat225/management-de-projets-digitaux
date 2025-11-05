@@ -9,7 +9,7 @@ def render():
         à partir de données du marché et de statistiques descriptives.  
         Vous pouvez :
         - Explorer des **statistiques détaillées** sur vos variables,
-        - (Bientôt) Obtenir une **estimation personnalisée** de votre bien 🏡.
+        - Obtenir une **estimation personnalisée** de votre bien 🏡.
         """
     )
     st.success("Utilisez les onglets pour naviguer : **🧮 Estimation** ou **📊 Statistiques**.")
