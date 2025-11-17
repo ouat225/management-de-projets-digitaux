@@ -1,10 +1,10 @@
 # src/MaisonEstimateur/app.py
 import streamlit as st
 
-from MaisonEstimateur.components.layout import topbar
-from MaisonEstimateur.pages.home_page import render as render_home
-from MaisonEstimateur.pages.estimation_page import render as render_estimation
-from MaisonEstimateur.pages.statistics_page import render as render_stats
+from maison_estimateur.components.layout import topbar
+from maison_estimateur.pages.home_page import render as render_home
+from maison_estimateur.pages.estimation_page import render as render_estimation
+from maison_estimateur.pages.statistics_page import render as render_stats
 
 # Config globale (une seule fois)
 st.set_page_config(page_title="MAISONESTIMATEUR", page_icon="🏠", layout="wide")

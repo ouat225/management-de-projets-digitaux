@@ -1,6 +1,6 @@
 # tests/unit/test_estimation_logic.py
 import pandas as pd
-from MaisonEstimateur.analysis.estimation import estimate_price_rule
+from maison_estimateur.analysis.estimation import estimate_price_rule
 
 def _df_citypart():
     # cityPartRange = 3 -> prix moyens = (100k + 200k) / 2 = 150k

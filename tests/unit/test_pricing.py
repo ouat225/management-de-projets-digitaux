@@ -1,6 +1,6 @@
 # tests/unit/test_pricing.py
 import pandas as pd
-from MaisonEstimateur.analysis.pricing import (
+from maison_estimateur.analysis.pricing import (
     get_average_price_by_citycode,
     get_average_price_by_citypart,
 )
