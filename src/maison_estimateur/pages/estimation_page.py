@@ -2,9 +2,9 @@
 from __future__ import annotations
 import streamlit as st
 import pandas as pd
-from MaisonEstimateur.components.layout import section_title, divider
-from MaisonEstimateur.data_processing.load_data import load_data
-from MaisonEstimateur.analysis.estimation import estimate_price_rule
+from maison_estimateur.components.layout import section_title, divider
+from maison_estimateur.data_processing.load_data import load_data
+from maison_estimateur.analysis.estimation import estimate_price_rule
 
 
 def render() -> None:
