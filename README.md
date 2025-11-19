@@ -1,33 +1,33 @@
 # MAISONESTIMATEUR
 
-Votre outil d’analyse du marché immobilier parisien
+Your Paris Real Estate Market Analysis Tool
 
-## Aperçu
+## Overview
 
-Ce projet propose une application interactive permettant d’analyser le marché immobilier parisien à partir d’un jeu de données de 10 000 logements.
-L’outil permet de visualiser les statistiques du marché, d’explorer les variables descriptives du dataset et d’obtenir des informations par quartier.
+This project offers an interactive application for analyzing the Paris real estate market using a dataset of 10,000 housing units.
+The tool allows you to visualize market statistics, explore the dataset’s descriptive variables, and obtain information by neighborhood.
 
-## Fonctionnalités
+## Features
 
-- **Analyse univariée** : statistiques descriptives pour chaque variable
-- **Visualisations interactives** : histogrammes, boxplots, diagrammes en barres
-- **Analyse par quartier (cityCode)** : prix moyen par zone géographique
+- **Univariate analysis** : descriptive statistics for each variable
+- **Interactive visualizations** : histograms, boxplots, bar charts
+- **Neighborhood analysis (cityCode)** : average price by geographical area
 
-## Prérequis
+## Requirements
 
 - Python 3.8+
-- Bibliothèques Python listées dans requirements.txt
-- Streamlit (installé automatiquement via les dépendances)
+- Python libraries listed in requirements.txt
+- Streamlit (automatically installed through dependencies)
 
-## Installation et utilisation
+## Installation and usage
 
-1. **Cloneer le dépot**
+1. **Clone the repository**
    ```bash
    git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
    cd management-de-projets-digitaux
    ```
 
-2. **Créer et activer un environnement virtuel**
+2. **Create and activate a virtual environment**
    ```bash
    # Windows
    python -m venv venv
@@ -38,23 +38,23 @@ L’outil permet de visualiser les statistiques du marché, d’explorer les var
    source venv/bin/activate
    ```
 
-3. **Installer les dépendances**
+3. **Install the dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Lancer l’application Streamlit**
+4. **Run the Streamlit application**
    Depuis la racine du projet, run:
    ```bash
    streamlit run src/main.py
    ```
 
-5. **Utilisation de l'application**
-   - L’application s’ouvre automatiquement dans votre navigateur
-   - Naviguez via les onglets : Accueil, Estimation, Statistiques
-   - Analysez les données immobilières parisiennes de façon interactive
+5. **Use of the application**
+   - The application will automatically open in your browser
+   - Navigate through the tabs: Home, Estimation, Statistics
+   - Interactively explore Paris real estate market data
 
-## Structure du projet
+## Project structure
 
 ```
 
