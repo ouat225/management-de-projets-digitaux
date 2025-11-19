@@ -21,6 +21,7 @@ from maison_estimateur.components.widgets import (
     citycode_selector_and_metric,
 )
 
+
 def _render_univariate_block(df: pd.DataFrame):
     """Bloc d'analyse univariée (sélection variable, stats, plot, effectifs)."""
     st.header("🔍 Analyse univariée")
@@ -114,8 +115,29 @@ def _render_multivariate_block(df: pd.DataFrame) -> None:
     plot_figure(fig_scatter)
 
 
+def _render_regression_block(df: pd.DataFrame):
+    """Bloc de régression linéaire multiple (coeffs, p-values, R²)."""
+    st.header("📐 Régression linéaire multiple")
+
+    from maison_estimateur.analysis.linear_regression import compute_linear_regression_full
+
+    try:
+        reg_table, reg_metrics, _ = compute_linear_regression_full(df)
+
+        st.subheader("Résumé du modèle")
+        st.write(f"**R² :** {reg_metrics['R2']:.4f}")
+        st.write(f"**R² ajusté :** {reg_metrics['R2_adj']:.4f}")
+
+        st.subheader("Coefficients du modèle")
+        st.dataframe(reg_table, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Erreur dans la régression linéaire : {e}")
+
+
+
 def render():
-    """Page Statistiques avec 2 onglets : univariée et multivariée."""
+    """Page Statistiques avec 3 onglets : univariée, multivariée, régression."""
     st.title("📊 Statistiques")
 
     # Chargement des données
@@ -128,7 +150,9 @@ def render():
     # Aperçu compact
     data_head(df, rows=5, expanded=False, title="Aperçu des données (head)")
 
-    tab_univ, tab_multiv = st.tabs(["🔍 Analyse univariée", "📈 Analyse multivariée"])
+    tab_univ, tab_multiv, tab_reg = st.tabs(
+        ["🔍 Analyse univariée", "📈 Analyse multivariée", "📐 Régression linéaire"]
+    )
 
     with tab_univ:
         _render_univariate_block(df)
@@ -136,3 +160,7 @@ def render():
 
     with tab_multiv:
         _render_multivariate_block(df)
+
+    with tab_reg:
+        _render_regression_block(df)
+
