@@ -1,46 +1,42 @@
 import pandas as pd
-from maison_estimateur.analysis.estimation import estimate_price_rule
+from maison_estimateur.analysis.estimation import estimate_price
 
 
-def _df_citypart():
+def _df_small():
+    """Petit DataFrame réaliste pour entraîner une régression simple."""
     return pd.DataFrame({
-        "cityPartRange": [3, 3, 7, 7],
-        "price":          [100_000, 200_000, 300_000, 500_000]
+        "squareMeters":  [60, 80, 120, 150],
+        "cityPartRange": [3, 5, 7, 4],
+        "numberOfRooms": [3, 4, 5, 6],
+        "cityCode":      [100, 100, 200, 200],
+        "price":         [200000, 260000, 400000, 550000],
     })
 
 
-class TestEstimatePriceRule:
+class TestEstimatePrice:
 
-    def test_baseline(self):
-        df = _df_citypart()
-        est = estimate_price_rule(df, citypart=3, area=60, rooms=3, has_garden=False)
-        assert est == 150_000.00
+    def test_estimation_returns_float(self):
+        df = _df_small()
+        est = estimate_price(df, area=80, citypart=5, rooms=3, citycode=100)
+        assert isinstance(est, float)
 
-        est_garden = estimate_price_rule(df, citypart=3, area=60, rooms=3, has_garden=True)
-        assert est_garden == round(150_000 * 1.10, 2)
+    def test_estimation_changes_with_area(self):
+        df = _df_small()
+        small = estimate_price(df, 60, 5, 3, 100)
+        big   = estimate_price(df, 150, 5, 3, 100)
+        assert big > small
 
-    def test_citypart_not_found(self):
-        df = _df_citypart()
-        est = estimate_price_rule(df, citypart=99, area=60, rooms=3, has_garden=False)
-        assert est is None
+    def test_estimation_changes_with_citycode(self):
+        df = _df_small()
+        cheap = estimate_price(df, 80, 5, 4, 100)
+        expensive = estimate_price(df, 80, 5, 4, 200)
+        # On ne teste pas les valeurs exactes, juste une différence
+        assert expensive != cheap
 
-    def test_monotonic_effects(self):
-        df = _df_citypart()
-        base = estimate_price_rule(df, citypart=7, area=60, rooms=3, has_garden=False)
-        bigger_area = estimate_price_rule(df, citypart=7, area=100, rooms=3, has_garden=False)
-        more_rooms = estimate_price_rule(df, citypart=7, area=60, rooms=5, has_garden=False)
-
-        assert bigger_area > base
-        assert more_rooms > base
-
-    def test_surface_below_reference(self):
-        df = _df_citypart()
-        base = estimate_price_rule(df, citypart=3, area=60, rooms=3, has_garden=False)
-        smaller = estimate_price_rule(df, citypart=3, area=40, rooms=3, has_garden=False)
-        assert smaller < base
-
-    def test_rooms_below_reference(self):
-        df = _df_citypart()
-        base = estimate_price_rule(df, citypart=3, area=60, rooms=3, has_garden=False)
-        fewer = estimate_price_rule(df, citypart=3, area=60, rooms=1, has_garden=False)
-        assert fewer < base
+    def test_missing_columns_returns_none(self):
+        df = pd.DataFrame({
+            "squareMeters": [60, 80],
+            # cityPartRange manquant
+            "price": [200000, 250000],
+        })
+        assert estimate_price(df, 80, 5, 3, 100) is None
