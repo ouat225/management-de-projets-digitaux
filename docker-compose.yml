@@ -3,7 +3,15 @@ version: "3.9"
 services:
   app:
     build: .
-    container_name: maisonestimateur
     ports:
       - "8501:8501"
-    command: streamlit run src/main.py --server.port=8501 --server.address=0.0.0.0
+    volumes:
+      - ./src:/app/src        
+      - ./data:/app/data      
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+    command: >
+      streamlit run src/main.py
+      --server.port=8501
+      --server.address=0.0.0.0
+
