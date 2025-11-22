@@ -16,8 +16,8 @@ The tool allows you to visualize market statistics, explore the dataset’s desc
 ## Requirements
 
 - Python 3.8+
-- Python libraries listed in requirements.txt
-- Streamlit (automatically installed through dependencies)
+- Poetry (gestionnaire de dépendances basé sur pyproject.toml)
+- Streamlit (installé automatiquement via les dépendances Poetry)
 
 ## Installation and usage
 
@@ -38,15 +38,19 @@ The tool allows you to visualize market statistics, explore the dataset’s desc
    source venv/bin/activate
    ```
 
-3. **Install the dependencies**
+3. **Install Poetry and the dependencies**
    ```bash
-   pip install -r requirements.txt
+   # Install Poetry 
+   pip install poetry
+
+   # Installer les dépendances définies dans pyproject.toml
+   poetry install
    ```
 
 4. **Run the Streamlit application**
    Depuis la racine du projet, run:
    ```bash
-   streamlit run src/main.py
+   poetry run streamlit run src/main.py
    ```
 
 5. **Use of the application**
@@ -81,7 +85,6 @@ project_root/
 │
 ├── tests/                             # Tests unitaires
 │
-├── requirements.txt
 └── README.md
 
 ```
