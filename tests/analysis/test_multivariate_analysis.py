@@ -8,7 +8,7 @@ from maison_estimateur.analysis.multivariate_analysis import (
 )
 
 
-class TestMultivariateAnalysis:
+class TestComputePriceCorrelationFigure:
 
     def test_corr_price_valid(self):
         df = pd.DataFrame({
