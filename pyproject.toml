@@ -9,19 +9,40 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-streamlit = "^1.29.0"
-pandas = "^2.1.0"
-matplotlib = "^3.8.0"
+python = "^3.13"
+
+# Main dependencies
+streamlit = "^1.40.0"
+pandas = "^2.2.0"
+matplotlib = {version = "^3.8.0", markers = "platform_machine != 'wasm32'"}
 plotly = "^5.18.0"
-statsmodels = "^0.14.0"
-scikit-learn = "^1.3.0"
-numpy = "^1.24.0"
+statsmodels = {version = "^0.14.0", python = "^3.13"}
+scikit-learn = {version = "^1.4.0", python = "^3.13"}
+numpy = {version = "^1.26.0", python = "^3.13"}
 seaborn = "^0.13.0"
 
+# Dependencies de statsmodels
+patsy = {version = "^0.5.6", python = "^3.13"}
+scipy = {version = "^1.11.0", python = "^3.13"}
+
+# Autres dépendances nécessaires
+python-dateutil = "^2.9.0"
+pytz = "^2024.1"
+tzdata = "^2024.1"
+six = ">=1.5"
+packaging = ">=21.3"
+
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
+pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
+black = "^24.0.0"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
