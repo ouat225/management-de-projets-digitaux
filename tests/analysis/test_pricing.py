@@ -4,7 +4,7 @@ from maison_estimateur.analysis.pricing import (
 )
 
 
-class TestPricing:
+class TestGetAveragePriceByCitycode:
 
     # -----------------------------
     # Tests pour cityCode
