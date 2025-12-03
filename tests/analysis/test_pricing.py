@@ -6,9 +6,6 @@ from maison_estimateur.analysis.pricing import (
 
 class TestGetAveragePriceByCitycode:
 
-    # -----------------------------
-    # Tests pour cityCode
-    # -----------------------------
     def test_citycode_valid(self):
         df = pd.DataFrame({
             "cityCode": [101, 101, 202],
