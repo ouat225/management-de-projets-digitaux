@@ -1,0 +1,254 @@
+/* ===============================
+   THEME GLOBAL : Dashboard sombre
+   =============================== */
+
+:root {
+    --bg-main: #050814;
+    --bg-surface: #101421;
+    --bg-surface-soft: #141a2a;
+    --bg-surface-soft-2: #1b2235;
+    --accent: #1dd1a1;          /* vert fintech */
+    --accent-soft: rgba(29, 209, 161, 0.18);
+    --accent-strong: #10ac84;
+    --text-main: #f5f7ff;
+    --text-muted: #a3acc6;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --shadow-soft: 0 24px 60px rgba(0, 0, 0, 0.65);
+    --radius-lg: 18px;
+    --radius-pill: 999px;
+}
+
+/* Fond général de l’appli */
+html, body, [data-testid="stAppViewContainer"] {
+    background: radial-gradient(circle at top left, #0b1020 0, #050814 45%, #02040a 100%);
+    color: var(--text-main);
+}
+
+/* Zone de contenu */
+.block-container {
+    padding-top: 1.6rem;
+    padding-bottom: 2.4rem;
+    max-width: min(1400px, 96vw);
+}
+
+/* Masque le footer Streamlit */
+footer {visibility: hidden;}
+footer:before {content: "";}
+
+/* ===============================
+   TYPO
+   =============================== */
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 "SF Pro Text", sans-serif;
+}
+
+/* Gros titres */
+.big-title {
+    font-size: 3.0rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+}
+.subtitle {
+    font-size: 1.05rem;
+    opacity: 0.9;
+    max-width: 40rem;
+    color: var(--text-muted);
+}
+
+/* Animation légère sur le titre */
+.big-title {
+    animation: fadeIn 1.0s ease-out both;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pastille au-dessus du titre */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.85rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    background: var(--accent-soft);
+    color: #e5fff8;
+    border: 1px solid rgba(29, 209, 161, 0.35);
+    margin-bottom: 0.55rem;
+}
+
+/* ===============================
+   BANNIÈRE HOME
+   =============================== */
+
+.banner {
+    width: 100%;
+    height: 170px;
+    border-radius: 20px;
+    background-image: url("https://images.unsplash.com/photo-1502672023488-70e25813eb80?auto=format&fit=crop&w=1400&q=80");
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.55) saturate(1.15);
+    margin-bottom: 1.4rem;
+    box-shadow: var(--shadow-soft);
+}
+
+/* ===============================
+   CARTES / PANNEAUX
+   =============================== */
+
+.card {
+    padding: 1.25rem 1.45rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    background: radial-gradient(circle at top left,
+                rgba(255, 255, 255, 0.03),
+                rgba(2, 4, 10, 0.94));
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 1.2rem;
+}
+
+.card h4 {
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+    font-size: 1.02rem;
+}
+
+.card ul {
+    padding-left: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card li {
+    margin-bottom: 0.25rem;
+}
+
+/* Bandeau info */
+.info-band {
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(90deg,
+        rgba(12, 24, 54, 0.95) 0%,
+        rgba(7, 40, 44, 0.95) 50%,
+        rgba(6, 43, 26, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.9rem;
+}
+
+/* ===============================
+   BOUTONS
+   =============================== */
+
+.stButton>button {
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    padding: 0.45rem 1.5rem;
+    border: 1px solid var(--accent-strong);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 70%);
+    color: #021210;
+    box-shadow: 0 12px 30px rgba(29, 209, 161, 0.35);
+    cursor: pointer;
+    transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s;
+}
+
+.stButton>button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 16px 34px rgba(29, 209, 161, 0.45);
+}
+
+.stButton>button:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
+}
+
+/* ===============================
+   PANNEAU PARAMÈTRES ESTIMATION
+   =============================== */
+
+.params-panel {
+    padding: 1.4rem 1.5rem 1.1rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface-soft);
+    border: 1px solid var(--border-subtle);
+}
+
+/* ===============================
+   SLIDERS / INPUTS / SELECT
+   =============================== */
+
+.stSlider, .stNumberInput, .stSelectbox {
+    margin-bottom: 0.6rem;
+}
+
+/* ===============================
+   TABS
+   =============================== */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.35rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: var(--radius-pill);
+    padding: 0.25rem 1rem;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+}
+
+.stTabs [aria-selected="true"][data-baseweb="tab"] {
+    background: rgba(29, 209, 161, 0.12);
+    color: var(--accent);
+    border-color: rgba(29, 209, 161, 0.7);
+}
+
+/* ===============================
+   METRICS & TABLES
+   =============================== */
+
+[data-testid="stMetric"] {
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface-soft);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+}
+
+/* DataFrames */
+[data-testid="stDataFrame"] {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+/* ===============================
+   GRAPHIQUES
+   =============================== */
+
+[data-testid="stPlotlyChart"], [data-testid="stAltairChart"] {
+    background: var(--bg-surface-soft);
+    padding: 0.8rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-soft);
+}
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+
+@media (max-width: 900px) {
+    .big-title {
+        font-size: 2.3rem;
+    }
+    .block-container {
+        padding-top: 1rem;
+    }
+}
+

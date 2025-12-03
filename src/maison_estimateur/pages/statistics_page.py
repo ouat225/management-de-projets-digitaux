@@ -69,7 +69,10 @@ def _render_multivariate_block(df: pd.DataFrame) -> None:
     corr_df, corr_fig = compute_price_correlation_figure(df)
     st.subheader("Corrélations avec price")
     if corr_fig is None or corr_df.empty:
-        st.info("Impossible de calculer les corrélations (pas de variables numériques ou pas de colonne 'price').")
+        st.info(
+            "Impossible de calculer les corrélations "
+            "(pas de variables numériques ou pas de colonne 'price')."
+        )
     else:
         st.dataframe(corr_df, use_container_width=True)
         plot_figure(corr_fig)
@@ -135,10 +138,18 @@ def _render_regression_block(df: pd.DataFrame):
         st.error(f"Erreur dans la régression linéaire : {e}")
 
 
-
 def render():
     """Page Statistiques avec 3 onglets : univariée, multivariée, régression."""
-    st.title("📊 Statistiques")
+    st.markdown(
+        """
+        <div class="big-title">📊 Statistiques</div>
+        <p class="subtitle">
+            Explorez le jeu de données utilisé pour l’estimation des prix :
+            distributions univariées, corrélations avec le prix et modèle de régression linéaire.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # Chargement des données
     try:
@@ -146,6 +157,16 @@ def render():
     except Exception as e:
         st.error(f"Impossible de charger les données : {e}")
         return
+
+    # Résumé rapide du dataset
+    n_rows, n_cols = df.shape
+    nb_numeric = df.select_dtypes(include="number").shape[1]
+    has_price = "price" in df.columns
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Nombre de lignes", f"{n_rows:,}".replace(",", " "))
+    c2.metric("Nombre de variables", n_cols)
+    c3.metric("Variables numériques", nb_numeric)
 
     # Aperçu compact
     data_head(df, rows=5, expanded=False, title="Aperçu des données (head)")
@@ -162,5 +183,8 @@ def render():
         _render_multivariate_block(df)
 
     with tab_reg:
-        _render_regression_block(df)
+        if not has_price:
+            st.warning("La colonne 'price' est nécessaire pour la régression linéaire.")
+        else:
+            _render_regression_block(df)
 
