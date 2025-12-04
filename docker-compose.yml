@@ -6,12 +6,7 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./src:/app/src        
-      - ./data:/app/data      
+      - ./data:/app/data
     environment:
       - STREAMLIT_SERVER_HEADLESS=true
-    command: >
-      streamlit run src/main.py
-      --server.port=8501
-      --server.address=0.0.0.0
 

@@ -9,54 +9,50 @@ The tool allows you to visualize market statistics, explore the dataset’s desc
 
 ## Features
 
-- **Univariate analysis** : descriptive statistics for each variable
-- **Interactive visualizations** : histograms, boxplots, bar charts
-- **Neighborhood analysis (cityCode)** : average price by geographical area
+- Univariate analysis : descriptive statistics for each variable
+
+- Interactive visualizations : histograms, boxplots, bar charts
+
+- Neighborhood analysis (cityCode) : average price by geographical area
 
 ## Requirements
 
-- Python 3.8+
-- Poetry (gestionnaire de dépendances basé sur pyproject.toml)
-- Streamlit (installé automatiquement via les dépendances Poetry)
+- Python 3.10+
+
+- Poetry (Dependency manager based on pyproject.toml)
+
+- Streamlit (Installed automatically via Poetry dependencies)
 
 ## Installation and usage
 
 1. **Clone the repository**
    ```bash
-   git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
-   cd management-de-projets-digitaux
+git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
+cd management-de-projets-digitaux
    ```
+2. **Install poetry if not installed**
+```bash
+pip install poetry
+```
 
-2. **Create and activate a virtual environment**
-   ```bash
-   # Windows
-   python -m venv venv
-   .\venv\Scripts\activate
-   
-   # Linux/MacOS
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install Poetry and the dependencies**
-   ```bash
-   # Install Poetry 
-   pip install poetry
-
-   # Installer les dépendances définies dans pyproject.toml
-   poetry install
-   ```
+3. **Install dependencies and create the virtual environment**
+```bash
+poetry install
+```
 
 4. **Run the Streamlit application**
-   Depuis la racine du projet, run:
-   ```bash
-   poetry run streamlit run src/main.py
-   ```
+From the project root, launch the app using poetry run:
+```bash
+poetry run python -m streamlit run src/maison_estimateur/app.py
+```
 
 5. **Use of the application**
-   - The application will automatically open in your browser
-   - Navigate through the tabs: Home, Estimation, Statistics
-   - Interactively explore Paris real estate market data
+
+The application will automatically open in your browser (http://localhost:8501)
+
+Navigate through the tabs: Home, Estimation, Statistics
+
+Interactively explore Paris real estate market data
 
 ## Project structure
 
@@ -64,27 +60,29 @@ The tool allows you to visualize market statistics, explore the dataset’s desc
 
 project_root/
 ├── data/
-│   └── ParisHousing.csv               # Dataset principal
+│   └── ParisHousing.csv            # Main dataset
 │
 ├── src/
-│   ├── main.py                        # Point d'entrée Streamlit
-│   └── MaisonEstimateur/
-│       ├── app.py                     # Assemble et gère les pages
-│       ├── pages/                     # Pages de l'application
-│       │   ├── home_page.py
-│       │   ├── estimation_page.py
-│       │   └── statistics_page.py
-│       ├── components/                # Composants UI réutilisables
-│       │   ├── layout.py
-│       │   └── widgets.py
-│       ├── data_processing/           # Chargement/gestion des données
-│       │   └── load_data.py
-│       └── analysis/                  # Logique métier & statistiques
+│   ├── maison_estimateur/        # Main package
+│   │   ├── app.py                  # Streamlit entrypoint
+│   │   ├── pages/                  # Application pages
+│   │   │   ├── home_page.py
+│   │   │   ├── estimation_page.py
+│   │   │   └── statistics_page.py
+│   │   ├── components/             # Reusable UI components
+│   │   │   ├── layout.py
+│   │   │   └── widgets.py
+│   │   ├── data_processing/        # Data loading / preprocessing
+│   │   │   └── load_data.py
+│   │   └── analysis/               # Business logic & statistics
 │           ├── univariate_analysis.py
 │           └── pricing.py
 │
-├── tests/                             # Tests unitaires
-│
+├── pyproject.toml                  # Poetry dependencies & config
+├── poetry.lock                     # Locked versions
+├── tests/                          # Unit tests
+├── docker-compose.yml
+├── Dockerfile
 └── README.md
 
 ```
