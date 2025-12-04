@@ -1,5 +1,6 @@
 # src/maison_estimateur/pages/estimation_page.py
 from __future__ import annotations
+
 import streamlit as st
 import pandas as pd
 
@@ -18,17 +19,17 @@ def render() -> None:
         st.error("Impossible de charger les données.")
         return
 
-    # --- COMPARAISON DES MODELES ---
+    # COMPARAISON DES MODÈLES 
     st.subheader("📊 Comparaison des modèles")
 
+    # 👉 cityPartRange est SUPPRIMÉ, on garde uniquement cityCode
     feature_cols = [
         "squareMeters",
         "numberOfRooms",
         "hasYard",
         "hasPool",
         "floors",
-        "cityCode",
-        "cityPartRange",
+        "cityCode",          # seul critère géographique
         "numPrevOwners",
         "made",
         "isNewBuilt",
@@ -43,27 +44,30 @@ def render() -> None:
     with st.spinner("Entraînement des modèles..."):
         results_df, models = train_and_compare_models(df, feature_cols)
 
-    st.dataframe(results_df, use_container_width=True)
+    # nouvelle API Streamlit : width remplace use_container_width
+    st.dataframe(results_df, width="stretch")
 
-    # Choix du modèle pour l'estimation
+    # CHOIX DU MODÈLE 
     st.subheader("🎯 Choix du modèle de prédiction")
     selected_model_name = st.selectbox(
         "Sélectionnez un modèle", list(models.keys())
     )
     selected_model = models[selected_model_name]
 
-    # --- PARAMETRES UTILISATEUR ---
+    # PARAMÈTRES UTILISATEUR 
     st.subheader("📌 Paramètres")
 
-    area = st.number_input("Surface (m²)", min_value=10.0, max_value=300.0, value=80.0)
-    citypart = st.slider("Prestige du quartier (1–10)", 1, 10, 5)
+    area = st.number_input(
+        "Surface (m²)", min_value=10.0, max_value=300.0, value=80.0
+    )
     rooms = st.slider("Nombre de pièces", 1, 10, 3)
 
+    # 👉 on garde les cityCode bruts, sans mapping
     citycodes = sorted(df["cityCode"].unique())
     citycode = st.selectbox("Code ville", citycodes)
 
     if st.button("💰 Estimer le prix"):
-        # Construction de l'observation à prédire
+        # Observation à prédire (sans cityPartRange)
         input_data = pd.DataFrame(
             [
                 {
@@ -73,7 +77,6 @@ def render() -> None:
                     "hasPool": 0,
                     "floors": 1,
                     "cityCode": citycode,
-                    "cityPartRange": citypart,
                     "numPrevOwners": 1,
                     "made": 2000,
                     "isNewBuilt": 0,
@@ -94,3 +97,9 @@ def render() -> None:
             )
         except Exception:
             st.error("Erreur lors de l'estimation du prix.")
+
+
+
+
+
+

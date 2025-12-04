@@ -2,13 +2,15 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock* ./
-RUN pip install --no-cache-dir poetry \
-    && poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-# copie initiale (sera écrasée par le volume en dev, mais utile en prod)
+# Copier le projet (code + pyproject + README, etc.)
 COPY . .
 
-CMD ["streamlit", "run", "src/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Installer les dépendances décrites dans pyproject.toml
+# (comme tu l'as fait en local avec `pip install -e .`)
+RUN pip install --no-cache-dir -e .
 
+# Très important : dire à Python de chercher aussi dans /app/src
+ENV PYTHONPATH=/app/src
+
+# Lancer la même commande que sur ta machine
+CMD ["streamlit", "run", "src/maison_estimateur/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
