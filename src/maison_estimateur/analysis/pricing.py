@@ -55,7 +55,8 @@ def train_and_compare_models(
     models: dict[str, object] = {
         "Linear Regression": LinearRegression(),
         "Random Forest": RandomForestRegressor(
-            n_estimators=200, random_state=random_state
+            n_estimators=200,
+            random_state=random_state,
         ),
         "Ridge": Ridge(alpha=1.0),
         # Si vous préférez Lasso :
@@ -73,7 +74,6 @@ def train_and_compare_models(
         rmse = mse ** 0.5
         r2 = r2_score(y_test, y_pred)
 
-
         results.append(
             {
                 "model": name,
@@ -86,3 +86,28 @@ def train_and_compare_models(
     results_df = pd.DataFrame(results).sort_values("RMSE").reset_index(drop=True)
 
     return results_df, models
+
+
+def train_random_forest_only(
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    target_col: str = "price",
+    random_state: int = 42,
+) -> RandomForestRegressor:
+    """
+    Entraîne uniquement un RandomForestRegressor sur TOUT le dataset,
+    sans train/test split, pour la prédiction en temps réel.
+
+    Cette fonction n'est pas mise en cache : elle est appelée
+    uniquement lorsque l'utilisateur choisit explicitement Random Forest
+    pour l'estimation.
+    """
+    X = df[feature_cols]
+    y = df[target_col]
+
+    model = RandomForestRegressor(
+        n_estimators=200,
+        random_state=random_state,
+    )
+    model.fit(X, y)
+    return model
