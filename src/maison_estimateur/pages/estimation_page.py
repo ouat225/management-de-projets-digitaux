@@ -63,7 +63,7 @@ def render() -> None:
         results_df, models = get_trained_models(df, feature_cols)
 
     # nouvelle API Streamlit : width remplace use_container_width
-    st.dataframe(results_df, width="stretch")
+    st.dataframe(results_df, use_container_width=True)
 
     # CHOIX DU MODÈLE 
     st.subheader("🎯 Choix du modèle de prédiction")
