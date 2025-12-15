@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from maison_estimateur.components.layout import section_title, divider
+from maison_estimateur.components.widgets import property_inputs
 from maison_estimateur.data_processing.load_data import load_data
 from maison_estimateur.analysis.pricing import (
     train_and_compare_models,
@@ -63,45 +64,19 @@ def render() -> None:
     # CHOIX DU MODÈLE
     st.subheader("🎯 Choix du modèle de prédiction")
     selected_model_name = st.selectbox(
-        "Sélectionnez un modèle", list(models.keys())
+        "Sélectionnez un modèle", list(models.keys()), key="est_model_select"
     )
 
-    # PARAMÈTRES UTILISATEUR
-    st.subheader("📌 Paramètres")
+    divider()
+    st.subheader("📌 Paramètres du bien")
 
-    area = st.number_input(
-        "Surface (m²)", min_value=10.0, max_value=300.0, value=80.0
-    )
-    rooms = st.slider("Nombre de pièces", 1, 10, 3)
+    # ✅ Ici : tous les champs, Oui/Non seulement (pas de "Je ne sais pas")
+    input_data, meta = property_inputs(df, prefix="EST", allow_unknown=False)
 
-    citycodes = sorted(df["cityCode"].dropna().unique())
-    citycode = st.selectbox("Code ville", citycodes)
-
-    # --- Estimation ---
-    if st.button("💰 Estimer le prix"):
-        input_data = pd.DataFrame(
-            [
-                {
-                    "squareMeters": float(area),
-                    "numberOfRooms": int(rooms),
-                    "hasYard": 0,
-                    "hasPool": 0,
-                    "floors": 1,
-                    "cityCode": citycode,
-                    "numPrevOwners": 1,
-                    "made": 2000,
-                    "isNewBuilt": 0,
-                    "hasStormProtector": 0,
-                    "basement": 0,
-                    "attic": 0,
-                    "garage": 0,
-                    "hasStorageRoom": 0,
-                    "hasGuestRoom": 0,
-                }
-            ]
-        )
-
+    # Estimation
+    if st.button("💰 Estimer le prix", key="est_button"):
         try:
+            # Random Forest: ré-entraînement sur tout le dataset (comme avant)
             if selected_model_name == "Random Forest":
                 with st.spinner("Ré-entraînement du Random Forest..."):
                     selected_model = train_random_forest_only(df, feature_cols)
@@ -110,6 +85,7 @@ def render() -> None:
 
             price = float(selected_model.predict(input_data)[0])
 
+            # ✅ Sauvegarde en session_state pour afficher le bouton PDF ensuite
             st.session_state["last_estimation"] = {
                 "price": price,
                 "model_name": selected_model_name,
@@ -122,7 +98,9 @@ def render() -> None:
         except Exception:
             st.error("Erreur lors de l'estimation du prix.")
 
-    # --- Bouton PDF (affiché après une estimation) ---
+    # =========================
+    # 📄 Rapport PDF (après estimation)
+    # =========================
     est = st.session_state.get("last_estimation")
     if est is not None:
         divider()
@@ -141,14 +119,7 @@ def render() -> None:
                 data=pdf_bytes,
                 file_name="rapport_estimation.pdf",
                 mime="application/pdf",
-                use_container_width=False,
+                key="download_report_pdf",
             )
         except Exception:
             st.error("Impossible de générer le rapport PDF.")
-
-
-
-
-
-
-
