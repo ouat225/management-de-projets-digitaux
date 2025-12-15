@@ -9,13 +9,11 @@ from maison_estimateur.analysis.pricing import (
     train_and_compare_models,
     train_random_forest_only,
 )
+from maison_estimateur.analysis.report_pdf import generate_estimation_report_pdf
 
 
 @st.cache_resource
-def get_trained_models(
-    df: pd.DataFrame,
-    feature_cols: list[str],
-):
+def get_trained_models(df: pd.DataFrame, feature_cols: list[str]):
     """
     Entraîne les modèles une seule fois et met le résultat en cache.
 
@@ -36,17 +34,16 @@ def render() -> None:
         st.error("Impossible de charger les données.")
         return
 
-    # COMPARAISON DES MODÈLES 
+    # COMPARAISON DES MODÈLES
     st.subheader("📊 Comparaison des modèles")
 
-    # 👉 cityPartRange est SUPPRIMÉ, on garde uniquement cityCode
     feature_cols = [
         "squareMeters",
         "numberOfRooms",
         "hasYard",
         "hasPool",
         "floors",
-        "cityCode",          # seul critère géographique
+        "cityCode",
         "numPrevOwners",
         "made",
         "isNewBuilt",
@@ -58,20 +55,18 @@ def render() -> None:
         "hasGuestRoom",
     ]
 
-    # Entraînement une seule fois grâce au cache (pour les métriques + modèles de base)
     with st.spinner("Entraînement des modèles..."):
         results_df, models = get_trained_models(df, feature_cols)
 
-    # nouvelle API Streamlit : width remplace use_container_width
     st.dataframe(results_df, use_container_width=True)
 
-    # CHOIX DU MODÈLE 
+    # CHOIX DU MODÈLE
     st.subheader("🎯 Choix du modèle de prédiction")
     selected_model_name = st.selectbox(
         "Sélectionnez un modèle", list(models.keys())
     )
 
-    # PARAMÈTRES UTILISATEUR 
+    # PARAMÈTRES UTILISATEUR
     st.subheader("📌 Paramètres")
 
     area = st.number_input(
@@ -79,17 +74,16 @@ def render() -> None:
     )
     rooms = st.slider("Nombre de pièces", 1, 10, 3)
 
-    # 👉 on garde les cityCode bruts, sans mapping
-    citycodes = sorted(df["cityCode"].unique())
+    citycodes = sorted(df["cityCode"].dropna().unique())
     citycode = st.selectbox("Code ville", citycodes)
 
+    # --- Estimation ---
     if st.button("💰 Estimer le prix"):
-        # Observation à prédire (sans cityPartRange)
         input_data = pd.DataFrame(
             [
                 {
-                    "squareMeters": area,
-                    "numberOfRooms": rooms,
+                    "squareMeters": float(area),
+                    "numberOfRooms": int(rooms),
                     "hasYard": 0,
                     "hasPool": 0,
                     "floors": 1,
@@ -108,21 +102,50 @@ def render() -> None:
         )
 
         try:
-            # 👉 Cas particulier : si l'utilisateur a choisi Random Forest,
-            # on ré-entraîne le modèle maintenant, en direct, sur tout le dataset.
             if selected_model_name == "Random Forest":
                 with st.spinner("Ré-entraînement du Random Forest..."):
                     selected_model = train_random_forest_only(df, feature_cols)
             else:
-                # Pour les autres modèles, on utilise ceux déjà entraînés (cache)
                 selected_model = models[selected_model_name]
 
             price = float(selected_model.predict(input_data)[0])
+
+            st.session_state["last_estimation"] = {
+                "price": price,
+                "model_name": selected_model_name,
+                "features": input_data.iloc[0].to_dict(),
+            }
+
             st.success(
                 f"🏠 Prix estimé avec **{selected_model_name}** : **{price:,.0f} €**"
             )
         except Exception:
             st.error("Erreur lors de l'estimation du prix.")
+
+    # --- Bouton PDF (affiché après une estimation) ---
+    est = st.session_state.get("last_estimation")
+    if est is not None:
+        divider()
+        section_title("📄 Rapport d’estimation")
+
+        try:
+            pdf_bytes = generate_estimation_report_pdf(
+                df=df,
+                features=est["features"],
+                estimated_price=float(est["price"]),
+                model_name=str(est["model_name"]),
+            )
+
+            st.download_button(
+                label="📄 Télécharger le rapport (PDF)",
+                data=pdf_bytes,
+                file_name="rapport_estimation.pdf",
+                mime="application/pdf",
+                use_container_width=False,
+            )
+        except Exception:
+            st.error("Impossible de générer le rapport PDF.")
+
 
 
 
