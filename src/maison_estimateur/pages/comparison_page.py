@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from maison_estimateur.components.layout import section_title, divider
-from maison_estimateur.components.widgets import property_inputs, prestige_proxy_metric
+from maison_estimateur.components.widgets import property_inputs
 from maison_estimateur.data_processing.load_data import load_data
 from maison_estimateur.analysis.pricing import (
     train_and_compare_models,
@@ -14,10 +14,7 @@ from maison_estimateur.analysis.pricing import (
 
 @st.cache_resource
 def get_trained_models(df: pd.DataFrame, feature_cols: list[str]):
-    """
-    Entraîne les modèles une seule fois et met le résultat en cache.
-    Le cache est invalidé si df ou feature_cols changent.
-    """
+    """Entraîne les modèles une seule fois et met le résultat en cache."""
     return train_and_compare_models(df, feature_cols)
 
 
@@ -27,7 +24,7 @@ def _predict_price(
     models: dict[str, object],
     selected_model_name: str,
     input_df: pd.DataFrame,
-):
+) -> float:
     """Prédit le prix selon le modèle choisi (gestion RF comme sur estimation_page)."""
     if selected_model_name == "Random Forest":
         with st.spinner("Ré-entraînement du Random Forest..."):
@@ -35,8 +32,7 @@ def _predict_price(
     else:
         model = models[selected_model_name]
 
-    pred = float(model.predict(input_df)[0])
-    return pred
+    return float(model.predict(input_df)[0])
 
 
 def render() -> None:
@@ -50,6 +46,7 @@ def render() -> None:
         return
 
     st.subheader("📊 Modèles disponibles (référence)")
+
     feature_cols = [
         "squareMeters",
         "numberOfRooms",
@@ -83,15 +80,18 @@ def render() -> None:
     divider()
 
     section_title("🏠 Saisir les deux biens à comparer")
+
     colA, colB = st.columns(2)
 
     with colA:
         st.markdown("### Bien A")
-        input_A, meta_A = property_inputs(df, prefix="A")
+        # ✅ Ici : Je ne sais pas autorisé
+        input_A, meta_A = property_inputs(df, prefix="A", allow_unknown=True)
 
     with colB:
         st.markdown("### Bien B")
-        input_B, meta_B = property_inputs(df, prefix="B")
+        # ✅ Ici : Je ne sais pas autorisé
+        input_B, meta_B = property_inputs(df, prefix="B", allow_unknown=True)
 
     divider()
 
@@ -101,8 +101,8 @@ def render() -> None:
             price_B = _predict_price(df, feature_cols, models, selected_model_name, input_B)
 
             # Dérivés
-            area_A = float(meta_A["squareMeters"])
-            area_B = float(meta_B["squareMeters"])
+            area_A = float(meta_A.get("squareMeters", 0.0))
+            area_B = float(meta_B.get("squareMeters", 0.0))
             eur_m2_A = price_A / area_A if area_A > 0 else float("nan")
             eur_m2_B = price_B / area_B if area_B > 0 else float("nan")
 
@@ -124,6 +124,6 @@ def render() -> None:
             c3.metric("€/m² — A", f"{eur_m2_A:,.0f} €")
             c4.metric("€/m² — B", f"{eur_m2_B:,.0f} €")
 
-
         except Exception:
             st.error("Erreur lors de la comparaison. Vérifiez les paramètres et réessayez.")
+

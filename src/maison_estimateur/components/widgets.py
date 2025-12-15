@@ -1,12 +1,15 @@
 from __future__ import annotations
+
 import streamlit as st
 import pandas as pd
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict, Tuple
+
 
 def data_head(df: pd.DataFrame, rows: int = 5, expanded: bool = False, title: str = "Aperçu des données (head)") -> None:
     """Affiche un aperçu des premières lignes dans un expander."""
     with st.expander(title, expanded=expanded):
         st.dataframe(df.head(rows), use_container_width=True)
+
 
 def plot_figure(fig) -> None:
     """Affiche une figure Plotly en pleine largeur avec gestion d'erreurs douce."""
@@ -17,6 +20,7 @@ def plot_figure(fig) -> None:
         st.plotly_chart(fig, use_container_width=True)
     except Exception:
         st.warning("Le graphique fourni n'est pas compatible avec plotly_chart.")
+
 
 def stats_metrics_numeric(stats: dict, analysis: dict) -> None:
     """Affiche les métriques pour variable numérique (3 colonnes)."""
@@ -34,6 +38,7 @@ def stats_metrics_numeric(stats: dict, analysis: dict) -> None:
         st.metric("Valeurs uniques", f"{analysis.get('unique_values', 0):,}")
         st.metric("Valeurs manquantes", f"{analysis.get('missing', 0):,}")
 
+
 def stats_metrics_categorical(stats: dict, analysis: dict) -> None:
     """Affiche les métriques pour variable catégorielle (2 colonnes)."""
     col1, col2 = st.columns(2)
@@ -43,6 +48,7 @@ def stats_metrics_categorical(stats: dict, analysis: dict) -> None:
     with col2:
         st.metric("Fréquence (valeur la plus fréquente)", stats.get('freq', '—'))
         st.metric("Valeurs manquantes", analysis.get('missing', 0))
+
 
 def value_counts_table(vc: Union[pd.Series, pd.DataFrame, list, dict]) -> None:
     """Affiche le tableau des effectifs d'une variable catégorielle."""
@@ -72,6 +78,7 @@ def value_counts_table(vc: Union[pd.Series, pd.DataFrame, list, dict]) -> None:
         st.dataframe(vc_df, use_container_width=True)
     except Exception as e:
         st.warning(f"Impossible d'afficher les effectifs : {e}")
+
 
 def citycode_selector_and_metric(
     df: pd.DataFrame,
@@ -111,40 +118,62 @@ def citycode_selector_and_metric(
 
 
 # ==========================================================
-# ✅ AJOUTS POUR LA PAGE COMPARAISON
+# ✅ INPUTS BIEN IMMOBILIER (Estimation & Comparaison)
+# - Estimation : allow_unknown=False  -> Oui/Non
+# - Comparaison: allow_unknown=True   -> Oui/Non/Je ne sais pas
 # ==========================================================
 
-def _mean_price_for_citycode(df: pd.DataFrame, city_code: int | str) -> float | None:
-    """Proxy prestige simple: prix moyen par cityCode."""
-    if "cityCode" not in df.columns or "price" not in df.columns:
-        return None
-    mask = df["cityCode"].astype(str) == str(city_code)
-    if not mask.any():
-        return None
-    val = df.loc[mask, "price"].mean()
-    if pd.isna(val):
-        return None
-    return float(val)
+def _mode_binary(df: pd.DataFrame, col: str, fallback: int = 0) -> int:
+    """Renvoie la valeur la plus fréquente (0/1) pour une colonne binaire."""
+    try:
+        if col not in df.columns:
+            return fallback
+        s = df[col].dropna()
+        if s.empty:
+            return fallback
+        return int(s.mode().iloc[0])
+    except Exception:
+        return fallback
 
-def prestige_proxy_metric(df: pd.DataFrame, city_code: int | str, title: str = "Prestige (proxy)") -> None:
-    """
-    Affiche un score de 'prestige' proxy basé sur le prix moyen du quartier.
-    (Tu pourras remplacer par ta vraie définition plus tard.)
-    """
-    mean_price = _mean_price_for_citycode(df, city_code)
-    if mean_price is None:
-        st.metric(title, "—")
-        return
-    st.metric(title, f"{mean_price:,.0f} €")
 
-def property_inputs(df: pd.DataFrame, prefix: str = "A") -> tuple[pd.DataFrame, dict]:
+def _yn_selector(label: str, key: str, allow_unknown: bool, default: int = 0) -> str:
+    """
+    Renvoie le choix texte ("Oui"/"Non"/"Je ne sais pas").
+    default: 0 -> Non, 1 -> Oui (sert uniquement à choisir l'index)
+    """
+    if allow_unknown:
+        options = ["Je ne sais pas", "Non", "Oui"]
+        return st.selectbox(label, options, index=0, key=key)
+    else:
+        options = ["Non", "Oui"]
+        idx = 1 if int(default) == 1 else 0
+        return st.selectbox(label, options, index=idx, key=key)
+
+
+def _yn_to_value(choice: str, df: pd.DataFrame, col: str, allow_unknown: bool) -> int:
+    """
+    Convertit le choix texte en 0/1.
+    Si 'Je ne sais pas', on remplace par la valeur la plus fréquente du dataset
+    pour rester robuste (modèle sklearn ne gère pas NaN ici).
+    """
+    if allow_unknown and choice == "Je ne sais pas":
+        return _mode_binary(df, col, fallback=0)
+    return 1 if choice == "Oui" else 0
+
+
+def property_inputs(
+    df: pd.DataFrame,
+    prefix: str = "A",
+    allow_unknown: bool = False,
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Bloc de saisie standardisé pour un bien immobilier.
+
     Retourne:
       - input_df: pd.DataFrame avec les colonnes attendues par le modèle
-      - meta: dict lisible pour affichage/diagnostic
+      - meta: dict (valeurs finales utilisées pour la prédiction)
     """
-    # Champs principaux (ceux que l'utilisateur comprend)
+    # Champs principaux
     area = st.number_input(
         "Surface (m²)",
         min_value=10.0,
@@ -160,28 +189,51 @@ def property_inputs(df: pd.DataFrame, prefix: str = "A") -> tuple[pd.DataFrame, 
         key=f"{prefix}_rooms",
     )
 
-    citycodes = sorted(df["cityCode"].dropna().unique())
+    citycodes = sorted(df["cityCode"].dropna().unique()) if "cityCode" in df.columns else []
     citycode = st.selectbox(
         "Code ville",
-        options=citycodes,
+        options=citycodes if citycodes else [0],
         index=0,
         key=f"{prefix}_citycode",
     )
 
-    # Champs “options” (tu peux ensuite les exposer plus finement si tu veux)
+    # Options avancées
     with st.expander("Options avancées", expanded=False):
-        hasYard = st.selectbox("Jardin", [0, 1], index=0, key=f"{prefix}_hasYard")
-        hasPool = st.selectbox("Piscine", [0, 1], index=0, key=f"{prefix}_hasPool")
+        # Valeurs par défaut (pour Estimation) : mode dataset
+        default_yard = _mode_binary(df, "hasYard", 0)
+        default_pool = _mode_binary(df, "hasPool", 0)
+        default_storm = _mode_binary(df, "hasStormProtector", 0)
+        default_basement = _mode_binary(df, "basement", 0)
+        default_attic = _mode_binary(df, "attic", 0)
+        default_garage = _mode_binary(df, "garage", 0)
+        default_storage = _mode_binary(df, "hasStorageRoom", 0)
+        default_guest = _mode_binary(df, "hasGuestRoom", 0)
+        default_new = _mode_binary(df, "isNewBuilt", 0)
+
+        ch_yard = _yn_selector("Jardin", key=f"{prefix}_hasYard", allow_unknown=allow_unknown, default=default_yard)
+        ch_pool = _yn_selector("Piscine", key=f"{prefix}_hasPool", allow_unknown=allow_unknown, default=default_pool)
+
         floors = st.slider("Nombre d'étages", 1, 5, 1, key=f"{prefix}_floors")
         numPrevOwners = st.slider("Nombre de propriétaires précédents", 0, 5, 1, key=f"{prefix}_numPrevOwners")
         made = st.slider("Année de construction", 1900, 2025, 2000, key=f"{prefix}_made")
-        isNewBuilt = st.selectbox("Neuf", [0, 1], index=0, key=f"{prefix}_isNewBuilt")
-        hasStormProtector = st.selectbox("Protection tempête", [0, 1], index=0, key=f"{prefix}_hasStormProtector")
-        basement = st.selectbox("Sous-sol", [0, 1], index=0, key=f"{prefix}_basement")
-        attic = st.selectbox("Grenier", [0, 1], index=0, key=f"{prefix}_attic")
-        garage = st.selectbox("Garage", [0, 1], index=0, key=f"{prefix}_garage")
-        hasStorageRoom = st.selectbox("Cave/Stockage", [0, 1], index=0, key=f"{prefix}_hasStorageRoom")
-        hasGuestRoom = st.selectbox("Chambre d'amis", [0, 1], index=0, key=f"{prefix}_hasGuestRoom")
+
+        ch_new = _yn_selector("Neuf", key=f"{prefix}_isNewBuilt", allow_unknown=allow_unknown, default=default_new)
+        ch_storm = _yn_selector("Protection tempête", key=f"{prefix}_hasStormProtector", allow_unknown=allow_unknown, default=default_storm)
+        ch_basement = _yn_selector("Sous-sol", key=f"{prefix}_basement", allow_unknown=allow_unknown, default=default_basement)
+        ch_attic = _yn_selector("Grenier", key=f"{prefix}_attic", allow_unknown=allow_unknown, default=default_attic)
+        ch_garage = _yn_selector("Garage", key=f"{prefix}_garage", allow_unknown=allow_unknown, default=default_garage)
+        ch_storage = _yn_selector("Cave/Stockage", key=f"{prefix}_hasStorageRoom", allow_unknown=allow_unknown, default=default_storage)
+        ch_guest = _yn_selector("Chambre d'amis", key=f"{prefix}_hasGuestRoom", allow_unknown=allow_unknown, default=default_guest)
+
+        hasYard = _yn_to_value(ch_yard, df, "hasYard", allow_unknown)
+        hasPool = _yn_to_value(ch_pool, df, "hasPool", allow_unknown)
+        isNewBuilt = _yn_to_value(ch_new, df, "isNewBuilt", allow_unknown)
+        hasStormProtector = _yn_to_value(ch_storm, df, "hasStormProtector", allow_unknown)
+        basement = _yn_to_value(ch_basement, df, "basement", allow_unknown)
+        attic = _yn_to_value(ch_attic, df, "attic", allow_unknown)
+        garage = _yn_to_value(ch_garage, df, "garage", allow_unknown)
+        hasStorageRoom = _yn_to_value(ch_storage, df, "hasStorageRoom", allow_unknown)
+        hasGuestRoom = _yn_to_value(ch_guest, df, "hasGuestRoom", allow_unknown)
 
     row = {
         "squareMeters": float(area),
@@ -201,7 +253,4 @@ def property_inputs(df: pd.DataFrame, prefix: str = "A") -> tuple[pd.DataFrame, 
         "hasGuestRoom": int(hasGuestRoom),
     }
 
-    input_df = pd.DataFrame([row])
-
-    meta = dict(row)
-    return input_df, meta
+    return pd.DataFrame([row]), dict(row)
