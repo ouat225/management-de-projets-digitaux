@@ -1,56 +1,55 @@
 # MAISONESTIMATEUR
 
-Your Paris Real Estate Market Analysis Tool
+An interactive tool for analyzing the Paris real estate market.
 
 ## Overview
 
-This project offers an interactive application for analyzing the Paris real estate market using a dataset of 10,000 housing units.
-The tool allows you to visualize market statistics, explore the dataset’s descriptive variables, and obtain information by neighborhood.
+MaisonEstimateur provides a Streamlit application to explore and visualize the Paris housing market using a dataset of 10,000 housing units.  
+It allows you to:
+- Visualize descriptive statistics for each variable
+- Generate interactive plots (histograms, boxplots, bar charts)
+- Analyze neighborhoods (`cityCode`) with average price by geographical area
 
 ## Features
 
-- Univariate analysis : descriptive statistics for each variable
-
-- Interactive visualizations : histograms, boxplots, bar charts
-
-- Neighborhood analysis (cityCode) : average price by geographical area
+- **Univariate analysis**: descriptive statistics for each variable
+- **Interactive visualizations**: histograms, boxplots, bar charts
+- **Neighborhood analysis**: average price by geographical area
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.13+
+- Poetry (dependency manager based on `pyproject.toml`)
+- Streamlit (installed automatically via Poetry)
 
-- Poetry (Dependency manager based on pyproject.toml)
-
-- Streamlit (Installed automatically via Poetry dependencies)
-
-## Installation and usage
+## Installation and Usage
 
 1. **Clone the repository**
    ```bash
-git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
-cd management-de-projets-digitaux
+   git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
+   cd management-de-projets-digitaux
    ```
+
 2. **Install poetry if not installed**
-```bash
-pip install poetry
-```
+   ```bash
+   pip install poetry
+   ```
 
 3. **Install dependencies and create the virtual environment**
-```bash
-poetry install
-```
+   ```bash
+   poetry install
+   ```
 
 4. **Run the Streamlit application**
-From the project root, launch the app using poetry run:
-```bash
-poetry run python -m streamlit run src/maison_estimateur/app.py
-```
+   ```bash
+   poetry run streamlit run src/maison_estimateur/app.py
+   ```
 
 5. **Use of the application**
 
 The application will automatically open in your browser (http://localhost:8501)
 
-Navigate through the tabs: Home, Estimation, Statistics
+Navigate through the tabs: Home, Estimation, Statistics, Comparison
 
 Interactively explore Paris real estate market data
 
@@ -63,7 +62,7 @@ project_root/
 │   └── ParisHousing.csv            # Main dataset
 │
 ├── src/
-│   ├── maison_estimateur/        # Main package
+│   ├── maison_estimateur/          # Main package
 │   │   ├── app.py                  # Streamlit entrypoint
 │   │   ├── pages/                  # Application pages
 │   │   │   ├── home_page.py
@@ -75,8 +74,8 @@ project_root/
 │   │   ├── data_processing/        # Data loading / preprocessing
 │   │   │   └── load_data.py
 │   │   └── analysis/               # Business logic & statistics
-│           ├── univariate_analysis.py
-│           └── pricing.py
+│   │       ├── univariate_analysis.py
+│   │       └── pricing.py
 │
 ├── pyproject.toml                  # Poetry dependencies & config
 ├── poetry.lock                     # Locked versions
