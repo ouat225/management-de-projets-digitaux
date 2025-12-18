@@ -62,26 +62,32 @@ project_root/
 │   └── ParisHousing.csv            # Main dataset
 │
 ├── src/
-│   ├── maison_estimateur/          # Main package
+│   ├── maison_estimateur/          # Main application package
 │   │   ├── app.py                  # Streamlit entrypoint
+│   │
 │   │   ├── pages/                  # Application pages
 │   │   │   ├── home_page.py
 │   │   │   ├── estimation_page.py
-│   │   │   └── statistics_page.py
+│   │   │   ├── statistics_page.py
+│   │   │   └── comparison_page.py  # Property comparison (Sprint 5)
+│   │
 │   │   ├── components/             # Reusable UI components
 │   │   │   ├── layout.py
 │   │   │   └── widgets.py
-│   │   ├── data_processing/        # Data loading / preprocessing
+│   │
+│   │   ├── data_processing/        # Data loading & preprocessing
 │   │   │   └── load_data.py
-│   │   └── analysis/               # Business logic & statistics
+│   │
+│   │   └── analysis/               # Statistical logic & modeling
 │   │       ├── univariate_analysis.py
-│   │       └── pricing.py
+│   │       ├── multivariate_analysis.py
+│   │       └── pricing.py           # Estimation logic
 │
-├── pyproject.toml                  # Poetry dependencies & config
-├── poetry.lock                     # Locked versions
 ├── tests/                          # Unit tests
-├── docker-compose.yml
+├── pyproject.toml                  # Poetry configuration
+├── poetry.lock                     # Dependency lock file
 ├── Dockerfile
+├── docker-compose.yml
 └── README.md
 
 ```
