@@ -1,37 +1,58 @@
 from __future__ import annotations
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-from maison_estimateur.components.layout import section_title, divider
+from maison_estimateur.analysis.pricing import train_and_compare_models
+from maison_estimateur.components.layout import divider, section_title
 from maison_estimateur.components.widgets import property_inputs
 from maison_estimateur.data_processing.load_data import load_data
-from maison_estimateur.analysis.pricing import (
-    train_and_compare_models,
-    train_random_forest_only,
-)
 
 
 @st.cache_resource
-def get_trained_models(df: pd.DataFrame, feature_cols: list[str]):
+def get_trained_models(
+    df: pd.DataFrame, feature_cols: list[str]
+) -> tuple[pd.DataFrame, dict[str, object]]:
     """Entraîne les modèles une seule fois et met le résultat en cache."""
     return train_and_compare_models(df, feature_cols)
 
 
+def _auto_select_best_model(results_df: pd.DataFrame) -> tuple[str, str]:
+    """
+    Sélectionne automatiquement le meilleur modèle selon un critère.
+    Priorité : MAE (min), sinon RMSE (min).
+    Retourne (model_name, criterion_used).
+    """
+    if results_df is None or results_df.empty:
+        raise ValueError("results_df est vide : impossible de sélectionner un modèle.")
+
+    if "MAE" in results_df.columns:
+        criterion = "MAE"
+    elif "RMSE" in results_df.columns:
+        criterion = "RMSE"
+    else:
+        raise ValueError("Aucune colonne de critère trouvée (attendu : MAE ou RMSE).")
+
+    if "model" not in results_df.columns:
+        raise ValueError("Colonne 'model' absente de results_df.")
+
+    best_row = results_df.sort_values(criterion, ascending=True).iloc[0]
+    best_model_name = str(best_row["model"])
+    return best_model_name, criterion
+
+
 def _predict_price(
-    df: pd.DataFrame,
-    feature_cols: list[str],
     models: dict[str, object],
     selected_model_name: str,
     input_df: pd.DataFrame,
 ) -> float:
-    """Prédit le prix selon le modèle choisi (gestion RF comme sur estimation_page)."""
-    if selected_model_name == "Random Forest":
-        with st.spinner("Ré-entraînement du Random Forest..."):
-            model = train_random_forest_only(df, feature_cols)
-    else:
-        model = models[selected_model_name]
+    """Prédit le prix selon le modèle sélectionné automatiquement."""
+    if selected_model_name not in models:
+        raise KeyError(
+            f"Modèle '{selected_model_name}' introuvable. Modèles dispo: {list(models.keys())}"
+        )
 
+    model = models[selected_model_name]
     return float(model.predict(input_df)[0])
 
 
@@ -70,12 +91,19 @@ def render() -> None:
 
     st.dataframe(results_df, width="stretch")
 
-    divider()
-
-    st.subheader("🎯 Choix du modèle")
-    selected_model_name = st.selectbox(
-        "Sélectionnez un modèle", list(models.keys()), key="compare_model_select"
-    )
+    # ✅ Sélection automatique du meilleur modèle (pas de choix utilisateur)
+    try:
+        best_model_name, criterion_used = _auto_select_best_model(results_df)
+        st.info(
+            f"Modèle retenu automatiquement : **{best_model_name}** "
+            f"(critère : **{criterion_used}** minimale)."
+        )
+    except Exception as e:
+        st.warning(f"Impossible de sélectionner automatiquement le meilleur modèle : {e}")
+        # fallback ultra simple si besoin
+        best_model_name = next(iter(models.keys()))
+        criterion_used = "fallback"
+        st.info(f"Modèle retenu automatiquement (fallback) : **{best_model_name}**.")
 
     divider()
 
@@ -85,20 +113,18 @@ def render() -> None:
 
     with colA:
         st.markdown("### Bien A")
-        # ✅ Ici : Je ne sais pas autorisé
         input_A, meta_A = property_inputs(df, prefix="A", allow_unknown=True)
 
     with colB:
         st.markdown("### Bien B")
-        # ✅ Ici : Je ne sais pas autorisé
         input_B, meta_B = property_inputs(df, prefix="B", allow_unknown=True)
 
     divider()
 
     if st.button("⚖️ Comparer", key="compare_button"):
         try:
-            price_A = _predict_price(df, feature_cols, models, selected_model_name, input_A)
-            price_B = _predict_price(df, feature_cols, models, selected_model_name, input_B)
+            price_A = _predict_price(models, best_model_name, input_A)
+            price_B = _predict_price(models, best_model_name, input_B)
 
             # Dérivés
             area_A = float(meta_A.get("squareMeters", 0.0))
