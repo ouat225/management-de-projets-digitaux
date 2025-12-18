@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 
 def get_average_price_by_citycode(
@@ -13,15 +12,61 @@ def get_average_price_by_citycode(
     city_code: str | int | float,
 ) -> float | None:
     """
-    Return the average property price for a given cityCode.
+    Retourne le prix moyen pour un cityCode.
 
-    - Accepts str/int/float and compares on string (robust to type differences)
-    - Returns None if cityCode/price are missing or if no match is found
+    - Compare sur str (robuste aux différences de types)
+    - Retourne None si colonnes manquantes, aucune correspondance, ou moyenne NaN
     """
     if "cityCode" not in df.columns or "price" not in df.columns:
         return None
 
     mask = df["cityCode"].astype(str) == str(city_code)
+    if not mask.any():
+        return None
+
+    mean_price = df.loc[mask, "price"].mean()
+    if pd.isna(mean_price):
+        return None
+
+    return float(round(mean_price, 2))
+
+
+def get_average_price_by_arrondissement(
+    df: pd.DataFrame,
+    arrondissement: int | str | float,
+) -> float | None:
+    """
+    Retourne le prix moyen pour un arrondissement (1..20).
+
+    Fonction robuste :
+    - si df contient 'arrondissement' -> utilise cette colonne
+    - sinon -> utilise 'cityCode' (car dans votre projet cityCode est mappé en arrondissement)
+
+    Retourne None si impossible (colonnes absentes, arr invalide, pas de match, moyenne NaN)
+    """
+    if "price" not in df.columns:
+        return None
+
+    # Parse arrondissement en int
+    try:
+        arr = int(float(arrondissement))
+    except Exception:
+        return None
+
+    if not (1 <= arr <= 20):
+        return None
+
+    # Choix de la colonne support
+    if "arrondissement" in df.columns:
+        col = "arrondissement"
+    elif "cityCode" in df.columns:
+        col = "cityCode"
+    else:
+        return None
+
+    s = pd.to_numeric(df[col], errors="coerce")
+    mask = (s == arr)
+
     if not mask.any():
         return None
 
@@ -40,11 +85,10 @@ def train_and_compare_models(
     random_state: int = 42,
 ) -> tuple[pd.DataFrame, dict[str, object]]:
     """
-    Train several regression models and return:
-    - a DataFrame with performance metrics (MAE, RMSE, R2)
-    - a dict {model_name: trained_model}
+    Entraîne plusieurs modèles de régression et retourne :
+    - un DataFrame de métriques (MAE, RMSE, R2)
+    - un dict {nom_modele: modele_entraine}
     """
-
     X = df[feature_cols]
     y = df[target_col]
 
@@ -59,8 +103,6 @@ def train_and_compare_models(
             random_state=random_state,
         ),
         "Ridge": Ridge(alpha=1.0),
-        # Si vous préférez Lasso :
-        # "Lasso": Lasso(alpha=0.001),
     }
 
     results: list[dict[str, float | str]] = []
@@ -74,17 +116,9 @@ def train_and_compare_models(
         rmse = mse ** 0.5
         r2 = r2_score(y_test, y_pred)
 
-        results.append(
-            {
-                "model": name,
-                "MAE": mae,
-                "RMSE": rmse,
-                "R2": r2,
-            }
-        )
+        results.append({"model": name, "MAE": mae, "RMSE": rmse, "R2": r2})
 
     results_df = pd.DataFrame(results).sort_values("RMSE").reset_index(drop=True)
-
     return results_df, models
 
 
@@ -95,12 +129,8 @@ def train_random_forest_only(
     random_state: int = 42,
 ) -> RandomForestRegressor:
     """
-    Entraîne uniquement un RandomForestRegressor sur TOUT le dataset,
-    sans train/test split, pour la prédiction en temps réel.
-
-    Cette fonction n'est pas mise en cache : elle est appelée
-    uniquement lorsque l'utilisateur choisit explicitement Random Forest
-    pour l'estimation.
+    Entraîne uniquement un RandomForestRegressor sur tout le dataset,
+    pour prédiction temps réel (sans split).
     """
     X = df[feature_cols]
     y = df[target_col]
@@ -111,3 +141,33 @@ def train_random_forest_only(
     )
     model.fit(X, y)
     return model
+
+def train_best_model_on_full_data(
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    target_col: str = "price",
+    random_state: int = 42,
+) -> tuple[str, object, pd.DataFrame]:
+    """
+    1) compare les modèles (split)
+    2) choisit automatiquement le meilleur (RMSE min)
+    3) ré-entraîne ce modèle sur tout le dataset
+    Retourne: (best_model_name, best_model_fitted, results_df)
+    """
+    results_df, models = train_and_compare_models(
+        df=df,
+        feature_cols=feature_cols,
+        target_col=target_col,
+        random_state=random_state,
+    )
+
+    # results_df est déjà trié par RMSE dans ton code
+    best_model_name = str(results_df.loc[0, "model"])
+
+    # Refit sur tout le dataset (prod)
+    X = df[feature_cols]
+    y = df[target_col]
+    best_model = models[best_model_name]
+    best_model.fit(X, y)
+
+    return best_model_name, best_model, results_df

@@ -1,8 +1,7 @@
 from __future__ import annotations
+
 import pandas as pd
 import statsmodels.api as sm
-from typing import Optional
-
 
 FEATURES = ["squareMeters", "cityPartRange", "numberOfRooms", "cityCode"]
 
@@ -19,25 +18,31 @@ def train_simple_regression(df: pd.DataFrame):
     return model
 
 
-def estimate_price(df: pd.DataFrame,
-                   area: float,
-                   citypart: int,
-                   rooms: int,
-                   citycode: int) -> Optional[float]:
-
+def estimate_price(
+    df: pd.DataFrame,
+    area: float,
+    citypart: int,
+    rooms: int,
+    citycode: int,
+) -> float | None:
     try:
         model = train_simple_regression(df)
     except Exception:
         return None
 
-    x = pd.DataFrame([{
-        "const": 1.0,
-        "squareMeters": area,
-        "cityPartRange": citypart,
-        "numberOfRooms": rooms,
-        "cityCode": citycode,
-    }])
+    x = pd.DataFrame(
+        [
+            {
+                "const": 1.0,
+                "squareMeters": area,
+                "cityPartRange": citypart,
+                "numberOfRooms": rooms,
+                "cityCode": citycode,
+            }
+        ]
+    )
 
     price = float(model.predict(x)[0])
     return round(price, 2)
+
 

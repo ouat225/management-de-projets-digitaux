@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Any
 
-import pandas as pd
 import matplotlib.pyplot as plt
-
-from maison_estimateur.analysis.pricing import get_average_price_by_citycode
+import pandas as pd
 
 
 def _fig_to_png_bytes(fig) -> bytes:
@@ -14,7 +11,6 @@ def _fig_to_png_bytes(fig) -> bytes:
     fig.savefig(buf, format="png", dpi=160, bbox_inches="tight")
     plt.close(fig)
     return buf.getvalue()
-
 
 
 def fig_price_distribution_png(df: pd.DataFrame, estimated_price: float) -> bytes | None:

@@ -42,7 +42,7 @@ It allows you to:
 
 4. **Run the Streamlit application**
    ```bash
-   poetry run streamlit run src/maison_estimateur/app.py
+   poetry run maison-estimateur
    ```
 
 5. **Use of the application**

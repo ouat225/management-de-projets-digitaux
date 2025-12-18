@@ -1,28 +1,28 @@
-# src/MaisonEstimateur/pages/statistics_page.py
-import streamlit as st
+from __future__ import annotations
+
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
-from maison_estimateur.data_processing.load_data import load_data
-from maison_estimateur.analysis.univariate_analysis import generate_univariate_analysis
-from maison_estimateur.analysis.pricing import get_average_price_by_citycode
 from maison_estimateur.analysis.multivariate_analysis import (
     compute_price_correlation_figure,
     compute_vif_table,
     get_numeric_features_for_price,
 )
-
+from maison_estimateur.analysis.pricing import get_average_price_by_arrondissement
+from maison_estimateur.analysis.univariate_analysis import generate_univariate_analysis
 from maison_estimateur.components.widgets import (
+    arrondissement_selector_and_metric,
     data_head,
     plot_figure,
-    stats_metrics_numeric,
     stats_metrics_categorical,
+    stats_metrics_numeric,
     value_counts_table,
-    citycode_selector_and_metric,
 )
+from maison_estimateur.data_processing.load_data import load_data
 
 
-def _render_univariate_block(df: pd.DataFrame):
+def _render_univariate_block(df: pd.DataFrame) -> None:
     """Bloc d'analyse univariée (sélection variable, stats, plot, effectifs)."""
     st.header("🔍 Analyse univariée")
 
@@ -74,7 +74,7 @@ def _render_multivariate_block(df: pd.DataFrame) -> None:
             "(pas de variables numériques ou pas de colonne 'price')."
         )
     else:
-        st.dataframe(corr_df, use_container_width=True)
+        st.dataframe(corr_df, width="stretch")
         plot_figure(corr_fig)
 
     # VIF
@@ -83,7 +83,7 @@ def _render_multivariate_block(df: pd.DataFrame) -> None:
     if vif_df.empty:
         st.info("Impossible de calculer le VIF (pas assez de variables numériques).")
     else:
-        st.dataframe(vif_df, use_container_width=True)
+        st.dataframe(vif_df, width="stretch")
 
     # Scatter plots interactifs
     st.subheader("Nuages de points (price vs variable explicative)")
@@ -118,7 +118,7 @@ def _render_multivariate_block(df: pd.DataFrame) -> None:
     plot_figure(fig_scatter)
 
 
-def _render_regression_block(df: pd.DataFrame):
+def _render_regression_block(df: pd.DataFrame) -> None:
     """Bloc de régression linéaire multiple (coeffs, p-values, R²)."""
     st.header("📐 Régression linéaire multiple")
 
@@ -132,13 +132,13 @@ def _render_regression_block(df: pd.DataFrame):
         st.write(f"**R² ajusté :** {reg_metrics['R2_adj']:.4f}")
 
         st.subheader("Coefficients du modèle")
-        st.dataframe(reg_table, use_container_width=True)
+        st.dataframe(reg_table, width="stretch")
 
     except Exception as e:
         st.error(f"Erreur dans la régression linéaire : {e}")
 
 
-def render():
+def render() -> None:
     """Page Statistiques avec 3 onglets : univariée, multivariée, régression."""
     st.markdown(
         """
@@ -153,7 +153,7 @@ def render():
 
     # Chargement des données
     try:
-        df = load_data()  # par défaut: data/ParisHousing.csv
+        df = load_data()
     except Exception as e:
         st.error(f"Impossible de charger les données : {e}")
         return
@@ -168,7 +168,6 @@ def render():
     c2.metric("Nombre de variables", n_cols)
     c3.metric("Variables numériques", nb_numeric)
 
-    # Aperçu compact
     data_head(df, rows=5, expanded=False, title="Aperçu des données (head)")
 
     tab_univ, tab_multiv, tab_reg = st.tabs(
@@ -177,7 +176,13 @@ def render():
 
     with tab_univ:
         _render_univariate_block(df)
-        citycode_selector_and_metric(df, get_average_price_by_citycode)
+
+        # ✅ Arrondissements 1–20 uniquement + moyenne prix associée
+        arrondissement_selector_and_metric(
+            df,
+            get_average_price_by_arrondissement,
+            select_label="Arrondissement (1–20)",
+        )
 
     with tab_multiv:
         _render_multivariate_block(df)
@@ -187,4 +192,6 @@ def render():
             st.warning("La colonne 'price' est nécessaire pour la régression linéaire.")
         else:
             _render_regression_block(df)
+
+
 
