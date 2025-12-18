@@ -6,7 +6,9 @@ from maison_estimateur.components.layout import topbar
 from maison_estimateur.pages.home_page import render as render_home
 from maison_estimateur.pages.estimation_page import render as render_estimation
 from maison_estimateur.pages.statistics_page import render as render_stats
-from maison_estimateur.pages.comparison_page import render as render_comparison  # ✅ NEW
+from maison_estimateur.pages.comparison_page import render as render_comparison  
+from maison_estimateur.pages.aide_page import render as render_aide
+
 
 # Dossier courant (là où se trouve app.py)
 BASE_DIR = pathlib.Path(__file__).parent
@@ -36,7 +38,14 @@ def run_app():
     topbar(title="MAISONESTIMATEUR", show_quit=False)
 
     # Navigation en onglets
-    tabs = st.tabs(["🏠 Accueil", "🧮 Estimation", "📊 Statistiques", "⚖️ Comparaison"])  # ✅ NEW
+    tabs = st.tabs([
+        "🏠 Accueil",
+        "🧮 Estimation",
+        "📊 Statistiques",
+        "⚖️ Comparaison",
+        "🆘 Aide & Documentation",
+    ])
+
     with tabs[0]:
         render_home()
     with tabs[1]:
@@ -44,7 +53,10 @@ def run_app():
     with tabs[2]:
         render_stats()
     with tabs[3]:
-        render_comparison()  # ✅ NEW
+        render_comparison()
+    with tabs[4]:
+        render_aide()
+
 
 
 if __name__ == "__main__":
