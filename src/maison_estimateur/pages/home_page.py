@@ -55,7 +55,7 @@ def render():
             "https://images.unsplash.com/photo-1499856871958-5b9627545d1a"
             "?auto=format&fit=crop&w=1200&q=80",
             caption="Immeubles résidentiels à Paris",
-            use_container_width=True,
+            width="stretch",
         )
 
         st.markdown(

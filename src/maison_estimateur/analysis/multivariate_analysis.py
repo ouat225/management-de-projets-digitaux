@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Tuple
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -13,7 +11,7 @@ def _select_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df.select_dtypes(include=[np.number]).copy()
 
 
-def compute_price_correlation_figure(df: pd.DataFrame) -> Tuple[pd.DataFrame, object]:
+def compute_price_correlation_figure(df: pd.DataFrame) -> tuple[pd.DataFrame, object]:
     """Calcule la matrice de corrélation (numérique) et retourne une figure heatmap centrée sur price.
 
     Retourne (corr_df, fig).
@@ -54,7 +52,7 @@ def compute_vif_table(df: pd.DataFrame) -> pd.DataFrame:
     if x.empty:
         return pd.DataFrame(columns=["variable", "vif"])
 
-    vif_data = []
+    vif_data: list[dict[str, float | str]] = []
     for i, col in enumerate(x.columns):
         try:
             vif_val = float(variance_inflation_factor(x.values, i))
@@ -67,7 +65,7 @@ def compute_vif_table(df: pd.DataFrame) -> pd.DataFrame:
     return vif_df
 
 
-def get_numeric_features_for_price(df: pd.DataFrame) -> List[str]:
+def get_numeric_features_for_price(df: pd.DataFrame) -> list[str]:
     """Renvoie la liste des variables numériques pouvant être utilisées comme explicatives de price."""
     num_df = _select_numeric_columns(df)
     if "price" in num_df.columns:

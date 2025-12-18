@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -9,15 +9,15 @@ from maison_estimateur.analysis.pricing import get_average_price_by_citycode
 
 def build_insights(
     df: pd.DataFrame,
-    features: Dict[str, Any],
+    features: dict[str, Any],
     estimated_price: float,
     model_name: str,
-) -> List[str]:
+) -> list[str]:
     """
     Génère quelques insights simples, explicables et utiles dans un PDF.
     (Règles déterministes, pas d’IA.)
     """
-    insights: List[str] = []
+    insights: list[str] = []
 
     # Infos principales
     area = _safe_float(features.get("squareMeters"))
@@ -28,11 +28,9 @@ def build_insights(
         eur_m2 = estimated_price / area
         insights.append(f"Prix estimé au m² : {eur_m2:,.0f} € / m².")
     else:
-        eur_m2 = None
         insights.append("Prix au m² : non calculable (surface manquante).")
 
     # Comparaison à la moyenne du quartier
-    mean_city = None
     try:
         mean_city = get_average_price_by_citycode(df, citycode)
     except Exception:

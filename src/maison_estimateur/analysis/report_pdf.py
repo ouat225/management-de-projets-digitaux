@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from io import BytesIO
 from datetime import datetime
-from typing import Any, Dict
+from io import BytesIO
+from typing import Any
 
 import pandas as pd
-
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from maison_estimateur.analysis.report_figures import (
-    fig_price_distribution_png,
-)
+from maison_estimateur.analysis.report_figures import fig_price_distribution_png
 from maison_estimateur.analysis.report_insights import build_insights
 
 
@@ -66,7 +63,7 @@ def _safe_int(x: Any) -> int | None:
 
 def generate_estimation_report_pdf(
     df: pd.DataFrame,
-    features: Dict[str, Any],
+    features: dict[str, Any],
     estimated_price: float,
     model_name: str,
 ) -> bytes:
@@ -77,7 +74,6 @@ def generate_estimation_report_pdf(
     - Graphique principal (distribution des prix)
     - Insights automatiques
     """
-
     # Pré-calculs
     area = _safe_float(features.get("squareMeters"))
     rooms = _safe_int(features.get("numberOfRooms"))
@@ -132,7 +128,11 @@ def generate_estimation_report_pdf(
     y -= 0.5 * cm
     c.drawString(x0, y, f"Surface : {area:,.0f} m²" if area else "Surface : —")
     y -= 0.5 * cm
-    c.drawString(x0, y, f"Nombre de pièces : {rooms}" if rooms is not None else "Nombre de pièces : —")
+    c.drawString(
+        x0,
+        y,
+        f"Nombre de pièces : {rooms}" if rooms is not None else "Nombre de pièces : —",
+    )
     y -= 0.5 * cm
     c.drawString(x0, y, f"Code ville (cityCode) : {citycode}")
     y -= 0.5 * cm

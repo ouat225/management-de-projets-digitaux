@@ -1,7 +1,9 @@
 from __future__ import annotations
-import streamlit as st
+
 from contextlib import contextmanager
-from typing import Iterator, Optional
+
+import streamlit as st
+
 
 def topbar(title: str = "MAISONESTIMATEUR", show_quit: bool = True) -> None:
     """Barre supérieure avec titre et bouton Quitter."""
@@ -14,12 +16,14 @@ def topbar(title: str = "MAISONESTIMATEUR", show_quit: bool = True) -> None:
                 st.info("Application arrêtée. Merci d'avoir utilisé MAISONESTIMATEUR.")
                 st.stop()
 
+
 def section_title(text: str) -> None:
     """Titre de section uniforme."""
     st.markdown(f"#### {text}")
 
+
 @contextmanager
-def page_container(padding: int = 0) -> Iterator[None]:
+def page_container(padding: int = 0) -> "None":
     """
     Contexte pour homogénéiser la mise en page.
     Exemple:
@@ -36,8 +40,10 @@ def page_container(padding: int = 0) -> Iterator[None]:
     st.markdown(css, unsafe_allow_html=True)
     yield
 
-def divider(label: Optional[str] = None) -> None:
+
+def divider(label: str | None = None) -> None:
     """Séparateur visuel optionnel avec label."""
     st.markdown("---")
     if label:
         st.caption(label)
+

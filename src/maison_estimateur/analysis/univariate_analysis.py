@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -22,7 +23,7 @@ def get_variable_type(df: pd.DataFrame, column: str) -> str:
     return "categorical"
 
 
-def generate_univariate_analysis(df: pd.DataFrame, column: str) -> Dict[str, Any]:
+def generate_univariate_analysis(df: pd.DataFrame, column: str) -> dict[str, Any]:
     """
     Génère une analyse univariée pour une colonne donnée.
     Retourne un dict avec:
@@ -36,7 +37,7 @@ def generate_univariate_analysis(df: pd.DataFrame, column: str) -> Dict[str, Any
         return {"error": f"La colonne {column} n'existe pas dans le dataset."}
 
     var_type = get_variable_type(df, column)
-    analysis: Dict[str, Any] = {
+    analysis: dict[str, Any] = {
         "column": column,
         "type": var_type,
         "missing": int(df[column].isna().sum()),
@@ -46,8 +47,9 @@ def generate_univariate_analysis(df: pd.DataFrame, column: str) -> Dict[str, Any
 
     if var_type == "numeric":
         stats = df[column].describe(percentiles=[0.25, 0.5, 0.75])
+
         # Sécurise les NaN avant arrondi
-        def _num(x, default=0.0):
+        def _num(x, default: float = 0.0) -> float:
             try:
                 return float(x)
             except Exception:

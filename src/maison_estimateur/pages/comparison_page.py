@@ -68,7 +68,7 @@ def render() -> None:
     with st.spinner("Entraînement des modèles..."):
         results_df, models = get_trained_models(df, feature_cols)
 
-    st.dataframe(results_df, use_container_width=True)
+    st.dataframe(results_df, width="stretch")
 
     divider()
 

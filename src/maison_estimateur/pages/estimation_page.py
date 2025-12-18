@@ -1,28 +1,44 @@
 from __future__ import annotations
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-from maison_estimateur.components.layout import section_title, divider
+from maison_estimateur.analysis.pricing import train_and_compare_models
+from maison_estimateur.analysis.report_pdf import generate_estimation_report_pdf
+from maison_estimateur.components.layout import divider, section_title
 from maison_estimateur.components.widgets import property_inputs
 from maison_estimateur.data_processing.load_data import load_data
-from maison_estimateur.analysis.pricing import (
-    train_and_compare_models,
-    train_random_forest_only,
-)
-from maison_estimateur.analysis.report_pdf import generate_estimation_report_pdf
 
 
-@st.cache_resource
-def get_trained_models(df: pd.DataFrame, feature_cols: list[str]):
-    """
-    Entraîne les modèles une seule fois et met le résultat en cache.
-
-    Le cache est invalidé automatiquement si :
-    - le DataFrame `df` change (contenu différent),
-    - ou la liste `feature_cols` change.
-    """
+@st.cache_data(show_spinner=False)
+def get_model_comparison(df: pd.DataFrame, feature_cols: list[str]):
+    """Compare les modèles (split + métriques) et cache les résultats."""
     return train_and_compare_models(df, feature_cols)
+
+
+def _pick_best_model(
+    results_df: pd.DataFrame, models: dict[str, object]
+) -> tuple[str, object] | tuple[None, None]:
+    """
+    Sélection auto du meilleur modèle.
+
+    Hypothèse (pricing.py) :
+    - results_df est trié par RMSE croissant (le meilleur est en ligne 0)
+    - results_df contient une colonne 'model'
+    """
+    if results_df is None or results_df.empty or not models:
+        return None, None
+
+    if "model" not in results_df.columns:
+        return None, None
+
+    best_name = str(results_df.iloc[0]["model"])
+    best_model = models.get(best_name)
+
+    if best_model is None:
+        return None, None
+
+    return best_name, best_model
 
 
 def render() -> None:
@@ -31,12 +47,9 @@ def render() -> None:
     # Chargement des données
     try:
         df = load_data()
-    except Exception:
-        st.error("Impossible de charger les données.")
+    except Exception as e:
+        st.error(f"Impossible de charger les données : {e}")
         return
-
-    # COMPARAISON DES MODÈLES
-    st.subheader("📊 Comparaison des modèles")
 
     feature_cols = [
         "squareMeters",
@@ -56,50 +69,57 @@ def render() -> None:
         "hasGuestRoom",
     ]
 
-    with st.spinner("Entraînement des modèles..."):
-        results_df, models = get_trained_models(df, feature_cols)
+    # =========================
+    # Modèle auto
+    # =========================
+    st.subheader("🤖 Modèle de prédiction (auto)")
 
-    st.dataframe(results_df, use_container_width=True)
+    with st.spinner("Préparation du modèle..."):
+        results_df, models = get_model_comparison(df, feature_cols)
 
-    # CHOIX DU MODÈLE
-    st.subheader("🎯 Choix du modèle de prédiction")
-    selected_model_name = st.selectbox(
-        "Sélectionnez un modèle", list(models.keys()), key="est_model_select"
-    )
+    if results_df is None or results_df.empty or not models:
+        st.error("Impossible de comparer les modèles (résultats vides).")
+        return
+
+    best_name, best_model = _pick_best_model(results_df, models)
+    if best_model is None:
+        st.error("Impossible de sélectionner automatiquement un modèle.")
+        return
+
+    # Message user-friendly (sans “RMSE minimal”)
+    st.info("Nous sélectionnons automatiquement le modèle le plus précis sur des données de test.")
+    st.caption("*(critère : erreur moyenne la plus faible)*")
+    st.caption(f"Modèle retenu : **{best_name}**")
+
+    # Détails optionnels
+    with st.expander("Voir les détails de comparaison (optionnel)", expanded=False):
+        st.dataframe(results_df, width="stretch")
 
     divider()
     st.subheader("📌 Paramètres du bien")
 
-    # ✅ Ici : tous les champs, Oui/Non seulement (pas de "Je ne sais pas")
-    input_data, meta = property_inputs(df, prefix="EST", allow_unknown=False)
+    # Tous les champs, Oui/Non seulement
+    input_data, _meta = property_inputs(df, prefix="EST", allow_unknown=False)
 
+    # =========================
     # Estimation
+    # =========================
     if st.button("💰 Estimer le prix", key="est_button"):
         try:
-            # Random Forest: ré-entraînement sur tout le dataset (comme avant)
-            if selected_model_name == "Random Forest":
-                with st.spinner("Ré-entraînement du Random Forest..."):
-                    selected_model = train_random_forest_only(df, feature_cols)
-            else:
-                selected_model = models[selected_model_name]
+            price = float(best_model.predict(input_data)[0])
 
-            price = float(selected_model.predict(input_data)[0])
-
-            # ✅ Sauvegarde en session_state pour afficher le bouton PDF ensuite
             st.session_state["last_estimation"] = {
                 "price": price,
-                "model_name": selected_model_name,
+                "model_name": best_name,
                 "features": input_data.iloc[0].to_dict(),
             }
 
-            st.success(
-                f"🏠 Prix estimé avec **{selected_model_name}** : **{price:,.0f} €**"
-            )
-        except Exception:
-            st.error("Erreur lors de l'estimation du prix.")
+            st.success(f"🏠 Prix estimé : **{price:,.0f} €**")
+        except Exception as e:
+            st.error(f"Erreur lors de l'estimation du prix : {e}")
 
     # =========================
-    # 📄 Rapport PDF (après estimation)
+    # Rapport PDF
     # =========================
     est = st.session_state.get("last_estimation")
     if est is not None:
@@ -121,5 +141,5 @@ def render() -> None:
                 mime="application/pdf",
                 key="download_report_pdf",
             )
-        except Exception:
-            st.error("Impossible de générer le rapport PDF.")
+        except Exception as e:
+            st.error(f"Impossible de générer le rapport PDF : {e}")
