@@ -193,5 +193,3 @@ def render() -> None:
         else:
             _render_regression_block(df)
 
-
-
