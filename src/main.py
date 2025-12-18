@@ -2,19 +2,11 @@
 from __future__ import annotations
 
 import os
-import sys
-
-from streamlit.web.cli import main as st_main
-
+import runpy
 
 def main() -> None:
-    # Cible : le fichier Streamlit (ton app)
     target = os.path.join(os.path.dirname(__file__), "maison_estimateur", "app.py")
-
-    # On simule: streamlit run <target>
-    sys.argv = ["streamlit", "run", target]
-    st_main()
-
+    runpy.run_path(target, run_name="__main__")
 
 if __name__ == "__main__":
     main()
