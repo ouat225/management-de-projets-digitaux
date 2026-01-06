@@ -77,13 +77,14 @@ def test_citycode_str_input_is_accepted():
     assert get_average_price_by_citycode(df, "101") == 150000.0
 
 
-def test_citycode_float_input_returns_none():
-    # Avec l'implémentation actuelle: str(101.0) == "101.0" ne match pas "101"
+def test_citycode_float_input_is_accepted():
+    # L'implémentation normalise 101.0 -> 101, donc ça doit matcher
     df = pd.DataFrame({
         "cityCode": [101, 101],
         "price": [100000, 200000],
     })
-    assert get_average_price_by_citycode(df, 101.0) is None
+    assert get_average_price_by_citycode(df, 101.0) == 150000.0
+
 
 
 # ==========================================================
