@@ -1,0 +1,16 @@
+stages:
+  - test
+
+test:
+  image: python:3.13-slim
+  stage: test
+
+  before_script:
+    - python -V
+    - pip install --upgrade pip
+    - pip install poetry
+    - poetry --version
+    - poetry install
+
+  script:
+    - poetry run pytest -q
