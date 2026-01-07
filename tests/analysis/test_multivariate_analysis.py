@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 
 from maison_estimateur.analysis.multivariate_analysis import (
     compute_price_correlation_figure,

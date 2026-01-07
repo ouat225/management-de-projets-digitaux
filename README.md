@@ -45,7 +45,12 @@ It allows you to:
    poetry run maison_estimateur
    ```
 
-5. **Use of the application**
+5. **Lancement des tests**
+   ```bash
+   poetry run pytest -q
+   ```
+
+6. **Use of the application**
 
 The application will automatically open in your browser (http://localhost:8501)
 
@@ -112,7 +117,7 @@ Data is sourced from [Kaggle - Paris Housing Price Prediction](https://www.kaggl
 | Variable | Type | Description |
 |----------|------|-------------|
 | squareMeters | int | Property size in m² |
-| numberOfRooms | int | Number of rooms |
+| rooms | int | Number of rooms |
 | hasYard | int | Has yard (0: no, 1: yes) |
 | hasPool | int | Has swimming pool (0: no, 1: yes) |
 | floors | int | Number of floors |
