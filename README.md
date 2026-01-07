@@ -42,7 +42,7 @@ It allows you to:
 
 4. **Run the Streamlit application**
    ```bash
-   poetry run streamlit run src/maison_estimateur/app.py
+   poetry run maison_estimateur
    ```
 
 5. **Use of the application**
@@ -59,36 +59,46 @@ Interactively explore Paris real estate market data
 
 project_root/
 ├── data/
-│   └── ParisHousing.csv            # Main dataset
+│   └── ParisHousing.csv                 # Main dataset
 │
 ├── src/
-│   ├── maison_estimateur/          # Main application package
-│   │   ├── app.py                  # Streamlit entrypoint
-│   │
-│   │   ├── pages/                  # Application pages
-│   │   │   ├── home_page.py
-│   │   │   ├── estimation_page.py
-│   │   │   ├── statistics_page.py
-│   │   │   └── comparison_page.py  # Property comparison (Sprint 5)
-│   │
-│   │   ├── components/             # Reusable UI components
-│   │   │   ├── layout.py
-│   │   │   └── widgets.py
-│   │
-│   │   ├── data_processing/        # Data loading & preprocessing
-│   │   │   └── load_data.py
-│   │
-│   │   └── analysis/               # Statistical logic & modeling
-│   │       ├── univariate_analysis.py
-│   │       ├── multivariate_analysis.py
-│   │       └── pricing.py           # Estimation logic
+│   └── maison_estimateur/               # Main application package
+│       ├── __main__.py                  # Entrypoint 
+│       ├── app.py                       # Streamlit application logic
+│       ├── style.css                    # Custom CSS (UI)
 │
-├── tests/                          # Unit tests
-├── pyproject.toml                  # Poetry configuration
-├── poetry.lock                     # Dependency lock file
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
+│       ├── pages/                       
+│       │   ├── home_page.py
+│       │   ├── estimation_page.py
+│       │   ├── statistics_page.py
+│       │   ├── comparison_page.py       # Property comparison
+│       │   └── help_page.py             
+│
+│       ├── components/                  # Reusable UI components
+│       │   ├── layout.py
+│       │   └── widgets.py
+│
+│       ├── data_processing/             # Data loading & preprocessing
+│       │   └── load_data.py
+│
+│       └── analysis/                    # Statistical logic & modeling
+│           ├── univariate_analysis.py
+│           ├── multivariate_analysis.py
+│           └── pricing.py               # Estimation & model comparison logic
+├── tests/                               # Unit & integration tests
+│   ├── analysis/
+│   │   ├── test_pricing.py
+│   │   ├── test_univariate_analysis.py
+│   │   └── test_multivariate_analysis.py
+│   └── data_processing/
+│       └── test_load_data.py
+│
+├── .gitlab-ci.yml                      
+├── pyproject.toml                       
+├── poetry.lock                          
+├── Dockerfile                           
+├── docker-compose.yml                   
+└── README.md                            
 
 ```
 
@@ -123,6 +133,6 @@ Data is sourced from [Kaggle - Paris Housing Price Prediction](https://www.kaggl
 
 - Oumar Abdramane ALLAWAN
 - Dimitri DELPECH
-- Minan Jean-Marc OUATTARA
+- Jean-Marc OUATTARA
 - Simon MALHEY
 - Dominique MUSITELLI

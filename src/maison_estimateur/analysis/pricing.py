@@ -22,60 +22,73 @@ def _mean_price_from_mask(df: pd.DataFrame, mask: pd.Series) -> float | None:
     return float(round(mean_price, 2))
 
 
-def get_average_price_by_citycode(
-    df: pd.DataFrame,
-    city_code: str | int | float,
-) -> float | None:
+def _normalize_int_like(x: str | int | float) -> str | int | float:
     """
-    Retourne le prix moyen pour un cityCode.
-
-    - Compare sur str (robuste aux différences de types)
-    - Retourne None si colonnes manquantes, aucune correspondance, ou moyenne NaN
+    Normalisation légère pour éviter "101.0" vs "101" quand l'entrée est float/int-like.
+    Ne lève pas d'erreur : retourne x si non convertible.
     """
-    if "cityCode" not in df.columns or "price" not in df.columns:
-        return None
-
-    # Normalisation légère pour éviter "101.0" vs "101" quand l'entrée est float/int-like
     try:
-        if isinstance(city_code, float) and city_code.is_integer():
-            city_code = int(city_code)
-        elif isinstance(city_code, str):
-            f = float(city_code)
+        if isinstance(x, float) and x.is_integer():
+            return int(x)
+        if isinstance(x, str):
+            f = float(x)
             if f.is_integer():
-                city_code = int(f)
+                return int(f)
     except Exception:
         pass
-
-    mask = df["cityCode"].astype(str) == str(city_code)
-    return _mean_price_from_mask(df, mask)
+    return x
 
 
-def get_average_price_by_arrondissement(
+def get_average_price(
     df: pd.DataFrame,
-    arrondissement: int | str | float,
+    value: str | int | float,
+    *,
+    level: str = "cityCode",
 ) -> float | None:
     """
-    Retourne le prix moyen pour un arrondissement (1..20).
+    Fonction générique : retourne le prix moyen par zone.
 
-    Fonction robuste :
-    - si df contient 'arrondissement' -> utilise cette colonne
-    - sinon -> utilise 'cityCode' (car dans votre projet cityCode est mappé en arrondissement)
+    Parameters
+    ----------
+    df : DataFrame
+        Doit contenir au minimum la colonne "price" et une colonne de zone.
+    value : str | int | float
+        Valeur recherchée (cityCode ou arrondissement).
+    level : {"cityCode", "arrondissement"}
+        Niveau de regroupement.
 
-    Retourne None si impossible (colonnes absentes, arr invalide, pas de match, moyenne NaN)
+    Notes
+    -----
+    - Si level == "arrondissement":
+        - utilise df["arrondissement"] si présent
+        - sinon utilise df["cityCode"] (dans ton projet cityCode est mappé en arrondissement)
+    - Retourne None si colonnes manquantes, value invalide, pas de match, ou moyenne NaN.
     """
     if "price" not in df.columns:
         return None
 
-    # Parse arrondissement en int
+    if level not in {"cityCode", "arrondissement"}:
+        return None
+
+    # Choix de la colonne support
+    if level == "cityCode":
+        if "cityCode" not in df.columns:
+            return None
+        col = "cityCode"
+        target = _normalize_int_like(value)
+        # robuste aux types : comparaison sur str
+        mask = df[col].astype(str) == str(target)
+        return _mean_price_from_mask(df, mask)
+
+    # level == "arrondissement"
     try:
-        arr = int(float(arrondissement))
+        arr = int(float(value))
     except Exception:
         return None
 
     if not (1 <= arr <= 20):
         return None
 
-    # Choix de la colonne support
     if "arrondissement" in df.columns:
         col = "arrondissement"
     elif "cityCode" in df.columns:
@@ -87,6 +100,36 @@ def get_average_price_by_arrondissement(
     mask = s == arr
     return _mean_price_from_mask(df, mask)
 
+
+# -------------------------------------------------------------------
+# Wrappers (compatibilité : tu ne casses rien côté pages/tests/imports)
+# -------------------------------------------------------------------
+
+def get_average_price_by_citycode(
+    df: pd.DataFrame,
+    city_code: str | int | float,
+) -> float | None:
+    """
+    Retourne le prix moyen pour un cityCode.
+    Wrapper compatibilité -> appelle get_average_price(..., level="cityCode").
+    """
+    return get_average_price(df, city_code, level="cityCode")
+
+
+def get_average_price_by_arrondissement(
+    df: pd.DataFrame,
+    arrondissement: int | str | float,
+) -> float | None:
+    """
+    Retourne le prix moyen pour un arrondissement (1..20).
+    Wrapper compatibilité -> appelle get_average_price(..., level="arrondissement").
+    """
+    return get_average_price(df, arrondissement, level="arrondissement")
+
+
+# -------------------------------------------------------------------
+# Modèles (inchangé)
+# -------------------------------------------------------------------
 
 def train_and_compare_models(
     df: pd.DataFrame,
