@@ -53,3 +53,9 @@ ENV/
 # Fichiers système
 .DS_Store
 Thumbs.db
+
+# Outils de qualité de code / tests
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+CACHEDIR.TAG
