@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, Mapping
+
 import pandas as pd
 import streamlit as st
 
@@ -19,7 +21,7 @@ def data_head(
         st.dataframe(df.head(rows), width="stretch")
 
 
-def plot_figure(fig) -> None:
+def plot_figure(fig: Any) -> None:
     """Affiche une figure Plotly en pleine largeur avec gestion d'erreurs douce."""
     if fig is None:
         st.info("Pas de figure à afficher.")
@@ -30,32 +32,41 @@ def plot_figure(fig) -> None:
         st.warning("Le graphique fourni n'est pas compatible avec plotly_chart.")
 
 
-def stats_metrics_numeric(stats: dict, analysis: dict) -> None:
+def stats_metrics_numeric(stats: Mapping[str, Any], analysis: Mapping[str, Any]) -> None:
     """Affiche les métriques pour variable numérique (3 colonnes)."""
     col1, col2, col3 = st.columns(3)
+
+    def _num(x: Any) -> float:
+        try:
+            return float(x)
+        except Exception:
+            return float("nan")
+
     with col1:
-        st.metric("Moyenne", f"{stats.get('mean', float('nan')):,.2f}")
-        st.metric("Médiane", f"{stats.get('median', float('nan')):,.2f}")
-        st.metric("Écart-type", f"{stats.get('std', float('nan')):,.2f}")
+        st.metric("Moyenne", f"{_num(stats.get('mean')):,.2f}")
+        st.metric("Médiane", f"{_num(stats.get('median')):,.2f}")
+        st.metric("Écart-type", f"{_num(stats.get('std')):,.2f}")
+
     with col2:
-        st.metric("Minimum", f"{stats.get('min', float('nan')):,.2f}")
-        st.metric("25%", f"{stats.get('25%', float('nan')):,.2f}")
-        st.metric("75%", f"{stats.get('75%', float('nan')):,.2f}")
+        st.metric("Minimum", f"{_num(stats.get('min')):,.2f}")
+        st.metric("25%", f"{_num(stats.get('25%')):,.2f}")
+        st.metric("75%", f"{_num(stats.get('75%')):,.2f}")
+
     with col3:
-        st.metric("Maximum", f"{stats.get('max', float('nan')):,.2f}")
-        st.metric("Valeurs uniques", f"{analysis.get('unique_values', 0):,}")
-        st.metric("Valeurs manquantes", f"{analysis.get('missing', 0):,}")
+        st.metric("Maximum", f"{_num(stats.get('max')):,.2f}")
+        st.metric("Valeurs uniques", f"{int(analysis.get('unique_values', 0)): ,}".replace(" ", ""))
+        st.metric("Valeurs manquantes", f"{int(analysis.get('missing', 0)): ,}".replace(" ", ""))
 
 
-def stats_metrics_categorical(stats: dict, analysis: dict) -> None:
+def stats_metrics_categorical(stats: Mapping[str, Any], analysis: Mapping[str, Any]) -> None:
     """Affiche les métriques pour variable catégorielle (2 colonnes)."""
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Valeurs uniques", analysis.get("unique_values", 0))
+        st.metric("Valeurs uniques", int(analysis.get("unique_values", 0)))
         st.metric("Valeur la plus fréquente", stats.get("top", "—"))
     with col2:
         st.metric("Fréquence (valeur la plus fréquente)", stats.get("freq", "—"))
-        st.metric("Valeurs manquantes", analysis.get("missing", 0))
+        st.metric("Valeurs manquantes", int(analysis.get("missing", 0)))
 
 
 def value_counts_table(vc: pd.Series | pd.DataFrame | list | dict) -> None:
@@ -67,8 +78,10 @@ def value_counts_table(vc: pd.Series | pd.DataFrame | list | dict) -> None:
                 .rename_axis("Valeur")
                 .reset_index(name="Nombre")
             )
+
         elif isinstance(vc, pd.DataFrame):
-            if set(vc.columns) >= {"Valeur", "Nombre"}:
+            # Si déjà sous forme "Valeur"/"Nombre"
+            if {"Valeur", "Nombre"}.issubset(set(vc.columns)):
                 vc_df = vc.sort_values("Nombre", ascending=False)
             else:
                 cols = list(vc.columns)
@@ -78,12 +91,16 @@ def value_counts_table(vc: pd.Series | pd.DataFrame | list | dict) -> None:
                     vc_df = vc_df.sort_values("Nombre", ascending=False)
                 else:
                     vc_df = vc.copy()
+
         else:
             vc_df = pd.DataFrame(vc)
-            if list(vc_df.columns)[:2] != ["Valeur", "Nombre"]:
-                vc_df.columns = ["Valeur", "Nombre"][: len(vc_df.columns)]
+            # Essaye de normaliser les 2 premières colonnes
+            if len(vc_df.columns) >= 2:
+                vc_df = vc_df.iloc[:, :2].copy()
+                vc_df.columns = ["Valeur", "Nombre"]
 
         st.dataframe(vc_df, width="stretch")
+
     except Exception as e:
         st.warning(f"Impossible d'afficher les effectifs : {e}")
 
@@ -107,7 +124,8 @@ def arrondissement_selector_and_metric(
         st.warning("La colonne 'arrondissement' est absente du dataset.")
         return
 
-    s = df["arrondissement"].dropna().astype(int)
+    # robuste: conversion numérique + filtre 1..20
+    s = pd.to_numeric(df["arrondissement"], errors="coerce").dropna().astype(int)
     s = s[(s >= 1) & (s <= 20)]
     if s.empty:
         st.warning("Aucun arrondissement valide (1–20) n'est disponible dans les données.")
@@ -175,7 +193,7 @@ def property_inputs(
     df: pd.DataFrame,
     prefix: str = "A",
     allow_unknown: bool = False,
-) -> tuple[pd.DataFrame, dict]:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     """
     Bloc de saisie standardisé pour un bien immobilier.
 
@@ -216,71 +234,20 @@ def property_inputs(
         default_guest = _mode_binary(df, "hasGuestRoom", 0)
         default_new = _mode_binary(df, "isNewBuilt", 0)
 
-        ch_yard = _yn_selector(
-            "Jardin",
-            key=f"{prefix}_hasYard",
-            allow_unknown=allow_unknown,
-            default=default_yard,
-        )
-        ch_pool = _yn_selector(
-            "Piscine",
-            key=f"{prefix}_hasPool",
-            allow_unknown=allow_unknown,
-            default=default_pool,
-        )
+        ch_yard = _yn_selector("Jardin", key=f"{prefix}_hasYard", allow_unknown=allow_unknown, default=default_yard)
+        ch_pool = _yn_selector("Piscine", key=f"{prefix}_hasPool", allow_unknown=allow_unknown, default=default_pool)
 
         floors = st.slider("Nombre d'étages", 1, 5, 1, key=f"{prefix}_floors")
-        num_prev_owners = st.slider(
-            "Nombre de propriétaires précédents",
-            0,
-            5,
-            1,
-            key=f"{prefix}_numPrevOwners",
-        )
+        num_prev_owners = st.slider("Nombre de propriétaires précédents", 0, 5, 1, key=f"{prefix}_numPrevOwners")
         made = st.slider("Année de construction", 1900, 2025, 2000, key=f"{prefix}_made")
 
-        ch_new = _yn_selector(
-            "Neuf",
-            key=f"{prefix}_isNewBuilt",
-            allow_unknown=allow_unknown,
-            default=default_new,
-        )
-        ch_storm = _yn_selector(
-            "Protection tempête",
-            key=f"{prefix}_hasStormProtector",
-            allow_unknown=allow_unknown,
-            default=default_storm,
-        )
-        ch_basement = _yn_selector(
-            "Sous-sol",
-            key=f"{prefix}_basement",
-            allow_unknown=allow_unknown,
-            default=default_basement,
-        )
-        ch_attic = _yn_selector(
-            "Grenier",
-            key=f"{prefix}_attic",
-            allow_unknown=allow_unknown,
-            default=default_attic,
-        )
-        ch_garage = _yn_selector(
-            "Garage",
-            key=f"{prefix}_garage",
-            allow_unknown=allow_unknown,
-            default=default_garage,
-        )
-        ch_storage = _yn_selector(
-            "Cave/Stockage",
-            key=f"{prefix}_hasStorageRoom",
-            allow_unknown=allow_unknown,
-            default=default_storage,
-        )
-        ch_guest = _yn_selector(
-            "Chambre d'amis",
-            key=f"{prefix}_hasGuestRoom",
-            allow_unknown=allow_unknown,
-            default=default_guest,
-        )
+        ch_new = _yn_selector("Neuf", key=f"{prefix}_isNewBuilt", allow_unknown=allow_unknown, default=default_new)
+        ch_storm = _yn_selector("Protection tempête", key=f"{prefix}_hasStormProtector", allow_unknown=allow_unknown, default=default_storm)
+        ch_basement = _yn_selector("Sous-sol", key=f"{prefix}_basement", allow_unknown=allow_unknown, default=default_basement)
+        ch_attic = _yn_selector("Grenier", key=f"{prefix}_attic", allow_unknown=allow_unknown, default=default_attic)
+        ch_garage = _yn_selector("Garage", key=f"{prefix}_garage", allow_unknown=allow_unknown, default=default_garage)
+        ch_storage = _yn_selector("Cave/Stockage", key=f"{prefix}_hasStorageRoom", allow_unknown=allow_unknown, default=default_storage)
+        ch_guest = _yn_selector("Chambre d'amis", key=f"{prefix}_hasGuestRoom", allow_unknown=allow_unknown, default=default_guest)
 
         has_yard = _yn_to_value(ch_yard, df, "hasYard", allow_unknown)
         has_pool = _yn_to_value(ch_pool, df, "hasPool", allow_unknown)
@@ -292,7 +259,7 @@ def property_inputs(
         has_storage_room = _yn_to_value(ch_storage, df, "hasStorageRoom", allow_unknown)
         has_guest_room = _yn_to_value(ch_guest, df, "hasGuestRoom", allow_unknown)
 
-    row = {
+    row: dict[str, Any] = {
         "squareMeters": float(area),
         "numberOfRooms": int(rooms),
         "hasYard": int(has_yard),

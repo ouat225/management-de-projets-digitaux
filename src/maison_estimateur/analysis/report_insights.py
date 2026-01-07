@@ -24,13 +24,13 @@ def build_insights(
     rooms = _safe_int(features.get("numberOfRooms"))
     citycode = features.get("cityCode")
 
-    if area and area > 0:
+    if area is not None and area > 0:
         eur_m2 = estimated_price / area
         insights.append(f"Prix estimé au m² : {eur_m2:,.0f} € / m².")
     else:
         insights.append("Prix au m² : non calculable (surface manquante).")
 
-    # Comparaison à la moyenne du quartier
+    # Comparaison à la moyenne du quartier (proxy cityCode)
     try:
         mean_city = get_average_price_by_citycode(df, citycode)
     except Exception:

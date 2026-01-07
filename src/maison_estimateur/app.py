@@ -1,4 +1,4 @@
-# src/MaisonEstimateur/app.py
+# src/maison_estimateur/app.py
 import pathlib
 import streamlit as st
 
@@ -6,14 +6,11 @@ from maison_estimateur.components.layout import topbar
 from maison_estimateur.pages.home_page import render as render_home
 from maison_estimateur.pages.estimation_page import render as render_estimation
 from maison_estimateur.pages.statistics_page import render as render_stats
-from maison_estimateur.pages.comparison_page import render as render_comparison  
+from maison_estimateur.pages.comparison_page import render as render_comparison
 from maison_estimateur.pages.aide_page import render as render_aide
 
-
-# Dossier courant (là où se trouve app.py)
 BASE_DIR = pathlib.Path(__file__).parent
 
-# Config globale
 st.set_page_config(
     page_title="MAISONESTIMATEUR",
     page_icon="🏠",
@@ -25,19 +22,16 @@ def inject_custom_css() -> None:
     """Charge le fichier style.css et l'injecte dans la page."""
     css_path = BASE_DIR / "style.css"
     if css_path.exists():
-        with open(css_path, encoding="utf-8") as f:
-            css = f.read()
+        css = css_path.read_text(encoding="utf-8")
         st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
-def run_app():
+def run() -> None:
     """Point d’entrée de l’application : compose les pages en onglets."""
     inject_custom_css()
 
-    # Barre du haut (sans bouton Quitter)
     topbar(title="MAISONESTIMATEUR", show_quit=False)
 
-    # Navigation en onglets
     tabs = st.tabs([
         "🏠 Accueil",
         "🧮 Estimation",
@@ -58,9 +52,8 @@ def run_app():
         render_aide()
 
 
-
 if __name__ == "__main__":
-    run_app()
+    run()
 
 
 
