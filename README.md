@@ -27,7 +27,6 @@ It allows you to:
 1. **Clone the repository**
    ```bash
    git clone https://gitlab-mi.univ-reims.fr/malh0033/management-de-projets-digitaux.git
-   cd management-de-projets-digitaux
    ```
 
 2. **Install poetry if not installed**
@@ -45,12 +44,7 @@ It allows you to:
    poetry run maison_estimateur
    ```
 
-5. **Lancement des tests**
-   ```bash
-   poetry run pytest -q
-   ```
-
-6. **Use of the application**
+5. **Use of the application**
 
 The application will automatically open in your browser (http://localhost:8501)
 
