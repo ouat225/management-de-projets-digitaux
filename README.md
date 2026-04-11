@@ -128,10 +128,6 @@ Data is sourced from [Kaggle - Paris Housing Price Prediction](https://www.kaggl
 | hasGuestRoom | int | Number of guest rooms |
 | price | float | Property price |
 
-## Authors
+## Author
 
-- Oumar Abdramane ALLAWAN
-- Dimitri DELPECH
 - Jean-Marc OUATTARA
-- Simon MALHEY
-- Dominique MUSITELLI
